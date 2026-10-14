@@ -2,6 +2,7 @@ import { createServer } from 'node:http';
 import { readFile, realpath } from 'node:fs/promises';
 import { resolve, extname, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createAssistantHandler } from './assistant.mjs';
 
 const root = await realpath(fileURLToPath(new URL('../dist/', import.meta.url))).catch(() => {
   console.error('Build the app first with npm run build.');
@@ -22,7 +23,9 @@ const mime = {
   '.json': 'application/json; charset=utf-8',
   '.png': 'image/png',
 };
+const assistant = createAssistantHandler();
 const server = createServer(async (req, res) => {
+  if (await assistant(req, res, port)) return;
   if (req.method !== 'GET' && req.method !== 'HEAD') {
     res.writeHead(405, { Allow: 'GET, HEAD' });
     res.end();

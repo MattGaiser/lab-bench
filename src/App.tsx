@@ -8,6 +8,7 @@ import {
   CheckCheck,
   ChevronRight,
   CircleHelp,
+  Compass,
   Clock3,
   FlaskConical,
   Play,
@@ -17,6 +18,8 @@ import {
 import CircuitCanvas from './CircuitCanvas';
 import Preview from './Preview';
 import Inspector from './Inspector';
+import StartPage from './StartPage';
+import Walkthrough from './Walkthrough';
 import type { Tab } from './Inspector';
 import {
   checkLab,
@@ -47,6 +50,13 @@ function download(text: string, filename: string) {
 
 export default function App() {
   const [initial] = useState(() => loadDraft(storage));
+  const [screen, setScreen] = useState<'start' | 'editor'>(() =>
+    window.location.hash === '#editor' ? 'editor' : 'start',
+  );
+  const [hasOpened, setHasOpened] = useState(
+    initial.status !== 'new' || window.location.hash === '#editor',
+  );
+  const [tourStep, setTourStep] = useState<number | null>(null);
   const [history, dispatch] = useReducer(historyReducer, {
     past: [],
     present: initial.lab,
@@ -79,7 +89,8 @@ export default function App() {
   }, [preview]);
 
   useEffect(() => {
-    if (saveStatus === 'damaged' || saveStatus === 'conflict') return;
+    if ((screen === 'start' && !hasOpened) || saveStatus === 'damaged' || saveStatus === 'conflict')
+      return;
     let canceled = false;
     setSaveStatus('saving');
     const timeout = window.setTimeout(async () => {
@@ -103,7 +114,7 @@ export default function App() {
       clearTimeout(timeout);
     };
     // Save status reflects the outcome; edits and explicit recovery are the triggers.
-  }, [lab, saveGeneration]);
+  }, [lab, saveGeneration, screen, hasOpened]);
 
   useEffect(() => {
     const onStorage = (event: StorageEvent) => {
@@ -117,6 +128,8 @@ export default function App() {
     const keys = (e: KeyboardEvent) => {
       if (
         preview ||
+        screen === 'start' ||
+        tourStep !== null ||
         aboutRef.current?.open ||
         (e.target instanceof Element &&
           e.target.closest('input, textarea, select, [contenteditable="true"]'))
@@ -129,7 +142,7 @@ export default function App() {
     };
     window.addEventListener('keydown', keys);
     return () => window.removeEventListener('keydown', keys);
-  }, [preview]);
+  }, [preview, screen, tourStep]);
   useEffect(() => {
     if (!message || message.error) return;
     const timer = setTimeout(() => setMessage(null), 5000);
@@ -137,14 +150,35 @@ export default function App() {
   }, [message]);
   useEffect(() => {
     const warn = (event: BeforeUnloadEvent) => {
-      if (saveStatus !== 'saved') {
+      if (saveStatus !== 'saved' && hasOpened) {
         event.preventDefault();
         event.returnValue = '';
       }
     };
     window.addEventListener('beforeunload', warn);
     return () => window.removeEventListener('beforeunload', warn);
-  }, [saveStatus]);
+  }, [saveStatus, hasOpened]);
+
+  const openEditor = () => {
+    setScreen('editor');
+    setHasOpened(true);
+    window.history.replaceState(null, '', '#editor');
+    window.scrollTo({ top: 0 });
+  };
+  const goToTourStep = (step: number) => {
+    openEditor();
+    setTourStep(step);
+    setTab(step === 0 ? 'details' : step === 4 ? 'review' : 'fault');
+    setPreview(step === 3 ? exampleLab() : null);
+  };
+  const closeTour = () => {
+    setTourStep(null);
+    setPreview(null);
+    window.scrollTo({ top: 0 });
+    requestAnimationFrame(() =>
+      document.getElementById('show-tour')?.focus({ preventScroll: true }),
+    );
+  };
 
   const update = (patch: Partial<Lab>, group?: string) =>
     dispatch({ type: 'replace', lab: { ...lab, ...patch }, group });
@@ -181,6 +215,7 @@ export default function App() {
           'The draft changed while the file was being read. Import again when you are ready.',
         );
       dispatch({ type: 'replace', lab: imported });
+      openEditor();
       setSelected(imported.fault);
       setTab('review');
       setMessage({ text: 'Lab imported. You can undo to return to the previous draft.' });
@@ -239,6 +274,9 @@ export default function App() {
           onClick={(e) => {
             e.preventDefault();
             setPreview(null);
+            setScreen('start');
+            window.history.replaceState(null, '', window.location.pathname);
+            window.scrollTo({ top: 0 });
           }}
           aria-label="Lab Bench authoring"
         >
@@ -257,6 +295,15 @@ export default function App() {
         <div className="header-right">
           <span className="independent-tag">Independent work sample</span>
           <button
+            id="show-tour"
+            aria-label="Show me around"
+            className="text-button tour-launch"
+            onClick={() => goToTourStep(0)}
+          >
+            <Compass size={17} />
+            <span>Show me around</span>
+          </button>
+          <button
             className="icon-button"
             aria-label="About Lab Bench"
             onClick={() => aboutRef.current?.showModal()}
@@ -269,220 +316,257 @@ export default function App() {
         </div>
       </header>
 
-      {preview ? (
-        <Preview
-          lab={preview}
-          onClose={() => {
-            setPreview(null);
-            window.scrollTo({ top: 0 });
+      <div hidden={screen !== 'start'}>
+        <StartPage
+          active={screen === 'start'}
+          lab={lab}
+          hasDraft={hasOpened}
+          onResume={openEditor}
+          onTour={() => goToTourStep(0)}
+          onImport={() => importRef.current?.click()}
+          onSample={() => {
+            dispatch({ type: 'replace', lab: exampleLab() });
+            setSelected('hold');
+            setTab('details');
+            openEditor();
+          }}
+          onApply={(next) => {
+            dispatch({ type: 'replace', lab: next });
+            setSelected(next.fault);
+            setTab('details');
+            openEditor();
+            setMessage({
+              text: 'Scenario set up. Review the brief, then try the apprentice preview. Undo restores your previous draft.',
+            });
           }}
         />
-      ) : (
-        <main className="author-page">
-          <div className="breadcrumbs">
-            <span>Lab library</span>
-            <ChevronRight size={13} />
-            <span>Motor controls</span>
-            <ChevronRight size={13} />
-            <strong>Lab editor</strong>
-          </div>
-          <div className="page-heading">
-            <div className="heading-copy">
-              <div className="heading-eyebrow">
-                <span className="overline">MAKE EVERY REP COUNT</span>
-                <span className="draft-pill">Draft exercise</span>
-              </div>
-              <h1>{lab.title.trim() || 'Untitled exercise'}</h1>
-              <p>Set the challenge. Shape the learning. Try it from their side.</p>
-            </div>
-            <div className="heading-actions">
-              <button id="preview-main" className="button secondary" onClick={previewLab}>
-                <Play size={16} />
-                Apprentice preview
-              </button>
-              <button className="button primary" onClick={exportLab}>
-                <ArrowDownToLine size={16} />
-                Export lab
-              </button>
-            </div>
-          </div>
-
-          <div className="workbench-meta">
-            <div className="meta-left">
-              <span>
-                <FlaskConical size={16} />
-                Troubleshooting lab
-              </span>
-              <span className="meta-separator" />
-              <span>
-                <Clock3 size={15} />
-                {lab.durationMinutes} minutes
-              </span>
-              <span className="meta-separator" />
-              <span className={ready ? 'ready-text' : 'muted'}>
-                <CheckCheck size={16} />
-                {ready ? 'Ready to preview' : `${completed} of ${checks.length} checks complete`}
-              </span>
-            </div>
-            <div className="meta-right">
-              <span
-                className={`save-state ${saveStatus === 'saved' ? '' : 'attention'}`}
-                role="status"
+      </div>
+      {screen === 'editor' &&
+        (preview ? (
+          <Preview
+            lab={preview}
+            onClose={() => {
+              setPreview(null);
+              window.scrollTo({ top: 0 });
+            }}
+          />
+        ) : (
+          <main className="author-page">
+            <div className="breadcrumbs">
+              <button
+                className="text-button"
+                onClick={() => {
+                  setScreen('start');
+                  window.history.replaceState(null, '', window.location.pathname);
+                }}
               >
-                <i />
-                {saveStatus === 'saved'
-                  ? 'Saved on this device'
-                  : saveStatus === 'saving'
-                    ? 'Saving draft…'
-                    : 'Draft needs attention'}
-              </span>
-              <button className="text-button" onClick={() => importRef.current?.click()}>
-                <ArrowUpFromLine size={15} />
-                Import
+                Start a lab
               </button>
+              <ChevronRight size={13} />
+              <span>Motor controls</span>
+              <ChevronRight size={13} />
+              <strong>Lab editor</strong>
             </div>
-          </div>
-
-          {(saveStatus === 'unavailable' ||
-            saveStatus === 'conflict' ||
-            saveStatus === 'damaged') && (
-            <div className="recovery-banner" role="alert">
-              <TriangleAlert size={20} />
-              <div>
-                <strong>
-                  {saveStatus === 'conflict'
-                    ? 'Another tab changed the saved draft.'
-                    : saveStatus === 'damaged'
-                      ? 'The saved draft could not be read.'
-                      : 'Browser storage is unavailable.'}
-                </strong>
-                <p>
-                  {saveStatus === 'conflict'
-                    ? 'Your work is still here. Download this copy before choosing which draft to keep.'
-                    : saveStatus === 'damaged'
-                      ? 'Your stored data has been preserved. A sample is open so you can keep exploring.'
-                      : 'You can keep working. Download a draft to preserve your changes.'}
-                </p>
-                <div className="recovery-actions">
-                  <button
-                    className="text-button"
-                    onClick={() => download(serializeLab(lab), 'lab-bench-draft.json')}
-                  >
-                    Download this draft
-                  </button>
-                  {saveStatus === 'conflict' && (
-                    <>
-                      <button className="text-button" onClick={adoptSaved}>
-                        Load saved draft
-                      </button>
-                      <button className="text-button" onClick={keepThisCopy}>
-                        Save this copy instead
-                      </button>
-                    </>
-                  )}
-                  {saveStatus === 'damaged' && (
-                    <>
-                      <button
-                        className="text-button"
-                        onClick={() => download(lastRaw.current ?? '', 'lab-bench-recovery.txt')}
-                      >
-                        Download stored data
-                      </button>
-                      <button className="text-button" onClick={keepThisCopy}>
-                        Replace stored draft with this copy
-                      </button>
-                    </>
-                  )}
-                  {saveStatus === 'unavailable' && (
-                    <button className="text-button" onClick={() => retrySave()}>
-                      Retry saving
-                    </button>
-                  )}
+            <div className="page-heading">
+              <div className="heading-copy">
+                <div className="heading-eyebrow">
+                  <span className="overline">MAKE EVERY REP COUNT</span>
+                  <span className="draft-pill">Draft exercise</span>
                 </div>
+                <h1>{lab.title.trim() || 'Untitled exercise'}</h1>
+                <p>Set the challenge. Shape the learning. Try it from their side.</p>
               </div>
-            </div>
-          )}
-
-          <div className="editor-layout">
-            <div className="editor-main">
-              <CircuitCanvas
-                lab={lab}
-                selected={selected}
-                onSelect={selectWire}
-                onMove={(id, p) => update({ positions: { ...lab.positions, [id]: p } })}
-                onUndo={() => dispatch({ type: 'undo' })}
-                onRedo={() => dispatch({ type: 'redo' })}
-                canUndo={history.past.length > 0}
-                canRedo={history.future.length > 0}
-              />
-              <div className="below-canvas">
-                <div className="objective-icon">
-                  <BookOpen size={21} />
-                </div>
-                <div>
-                  <span className="overline">THE LEARNING OBJECTIVE</span>
-                  <p>
-                    {lab.objective.trim() ||
-                      'Add an objective so apprentices know what they are working toward.'}
-                  </p>
-                </div>
-                <button className="text-button" onClick={() => showTab('details')}>
-                  Edit
-                  <ArrowUpRight size={15} />
+              <div className="heading-actions">
+                <button id="preview-main" className="button secondary" onClick={previewLab}>
+                  <Play size={16} />
+                  Apprentice preview
+                </button>
+                <button className="button primary" onClick={exportLab}>
+                  <ArrowDownToLine size={16} />
+                  Export lab
                 </button>
               </div>
-              <div className="workflow-strip">
-                <div>
-                  <span className="step-number">01</span>
-                  <div>
-                    <strong>Shape the exercise</strong>
-                    <p>Choose a fault and add context.</p>
-                  </div>
-                </div>
-                <ChevronRight size={17} />
-                <div>
-                  <span className="step-number">02</span>
-                  <div>
-                    <strong>Try their experience</strong>
-                    <p>Check the symptom in preview.</p>
-                  </div>
-                </div>
-                <ChevronRight size={17} />
-                <div>
-                  <span className="step-number">03</span>
-                  <div>
-                    <strong>Take it to the bench</strong>
-                    <p>Export a reusable lab file.</p>
-                  </div>
-                </div>
+            </div>
+
+            <div className="workbench-meta">
+              <div className="meta-left">
+                <span>
+                  <FlaskConical size={16} />
+                  Troubleshooting lab
+                </span>
+                <span className="meta-separator" />
+                <span>
+                  <Clock3 size={15} />
+                  {lab.durationMinutes} minutes
+                </span>
+                <span className="meta-separator" />
+                <span className={ready ? 'ready-text' : 'muted'}>
+                  <CheckCheck size={16} />
+                  {ready ? 'Ready to preview' : `${completed} of ${checks.length} checks complete`}
+                </span>
+              </div>
+              <div className="meta-right">
+                <span
+                  className={`save-state ${saveStatus === 'saved' ? '' : 'attention'}`}
+                  role="status"
+                >
+                  <i />
+                  {saveStatus === 'saved'
+                    ? 'Saved on this device'
+                    : saveStatus === 'saving'
+                      ? 'Saving draft…'
+                      : 'Draft needs attention'}
+                </span>
+                <button className="text-button" onClick={() => importRef.current?.click()}>
+                  <ArrowUpFromLine size={15} />
+                  Import
+                </button>
               </div>
             </div>
 
-            <Inspector
-              lab={lab}
-              selected={selected}
-              setSelected={setSelected}
-              tab={tab}
-              setTab={setTab}
-              update={update}
-              endGroup={endGroup}
-              previewLab={previewLab}
-              exportLab={exportLab}
-              onLoadSample={() => {
-                dispatch({ type: 'replace', lab: exampleLab() });
-                setSelected('hold');
-                setMessage({ text: 'Sample loaded. Undo restores your previous draft.' });
-              }}
-            />
-          </div>
-          <footer className="page-footer">
-            <span>Built for the moments before the real bench.</span>
-            <button className="text-button small" onClick={() => aboutRef.current?.showModal()}>
-              About this work sample
-              <ArrowUpRight size={13} />
-            </button>
-          </footer>
-        </main>
+            {(saveStatus === 'unavailable' ||
+              saveStatus === 'conflict' ||
+              saveStatus === 'damaged') && (
+              <div className="recovery-banner" role="alert">
+                <TriangleAlert size={20} />
+                <div>
+                  <strong>
+                    {saveStatus === 'conflict'
+                      ? 'Another tab changed the saved draft.'
+                      : saveStatus === 'damaged'
+                        ? 'The saved draft could not be read.'
+                        : 'Browser storage is unavailable.'}
+                  </strong>
+                  <p>
+                    {saveStatus === 'conflict'
+                      ? 'Your work is still here. Download this copy before choosing which draft to keep.'
+                      : saveStatus === 'damaged'
+                        ? 'Your stored data has been preserved. A sample is open so you can keep exploring.'
+                        : 'You can keep working. Download a draft to preserve your changes.'}
+                  </p>
+                  <div className="recovery-actions">
+                    <button
+                      className="text-button"
+                      onClick={() => download(serializeLab(lab), 'lab-bench-draft.json')}
+                    >
+                      Download this draft
+                    </button>
+                    {saveStatus === 'conflict' && (
+                      <>
+                        <button className="text-button" onClick={adoptSaved}>
+                          Load saved draft
+                        </button>
+                        <button className="text-button" onClick={keepThisCopy}>
+                          Save this copy instead
+                        </button>
+                      </>
+                    )}
+                    {saveStatus === 'damaged' && (
+                      <>
+                        <button
+                          className="text-button"
+                          onClick={() => download(lastRaw.current ?? '', 'lab-bench-recovery.txt')}
+                        >
+                          Download stored data
+                        </button>
+                        <button className="text-button" onClick={keepThisCopy}>
+                          Replace stored draft with this copy
+                        </button>
+                      </>
+                    )}
+                    {saveStatus === 'unavailable' && (
+                      <button className="text-button" onClick={() => retrySave()}>
+                        Retry saving
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="editor-layout">
+              <div className="editor-main">
+                <CircuitCanvas
+                  lab={lab}
+                  selected={selected}
+                  onSelect={selectWire}
+                  onMove={(id, p) => update({ positions: { ...lab.positions, [id]: p } })}
+                  onUndo={() => dispatch({ type: 'undo' })}
+                  onRedo={() => dispatch({ type: 'redo' })}
+                  canUndo={history.past.length > 0}
+                  canRedo={history.future.length > 0}
+                />
+                <div className="below-canvas">
+                  <div className="objective-icon">
+                    <BookOpen size={21} />
+                  </div>
+                  <div>
+                    <span className="overline">THE LEARNING OBJECTIVE</span>
+                    <p>
+                      {lab.objective.trim() ||
+                        'Add an objective so apprentices know what they are working toward.'}
+                    </p>
+                  </div>
+                  <button className="text-button" onClick={() => showTab('details')}>
+                    Edit
+                    <ArrowUpRight size={15} />
+                  </button>
+                </div>
+                <div className="workflow-strip">
+                  <div>
+                    <span className="step-number">01</span>
+                    <div>
+                      <strong>Shape the exercise</strong>
+                      <p>Choose a fault and add context.</p>
+                    </div>
+                  </div>
+                  <ChevronRight size={17} />
+                  <div>
+                    <span className="step-number">02</span>
+                    <div>
+                      <strong>Try their experience</strong>
+                      <p>Check the symptom in preview.</p>
+                    </div>
+                  </div>
+                  <ChevronRight size={17} />
+                  <div>
+                    <span className="step-number">03</span>
+                    <div>
+                      <strong>Take it to the bench</strong>
+                      <p>Export a reusable lab file.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <Inspector
+                lab={lab}
+                selected={selected}
+                setSelected={setSelected}
+                tab={tab}
+                setTab={setTab}
+                update={update}
+                endGroup={endGroup}
+                previewLab={previewLab}
+                exportLab={exportLab}
+                onLoadSample={() => {
+                  dispatch({ type: 'replace', lab: exampleLab() });
+                  setSelected('hold');
+                  setMessage({ text: 'Sample loaded. Undo restores your previous draft.' });
+                }}
+              />
+            </div>
+            <footer className="page-footer">
+              <span>Built for the moments before the real bench.</span>
+              <button className="text-button small" onClick={() => aboutRef.current?.showModal()}>
+                About this work sample
+                <ArrowUpRight size={13} />
+              </button>
+            </footer>
+          </main>
+        ))}
+      {tourStep !== null && (
+        <Walkthrough step={tourStep} onStep={goToTourStep} onClose={closeTour} />
       )}
       <input
         ref={importRef}
@@ -549,7 +633,9 @@ export default function App() {
             <strong>Your data</strong>
             <p>
               One draft is stored in this browser. Export files include the answer and can be
-              reopened here. No account or cloud service is required.
+              reopened here. The optional AI assistant sends your request, recent conversation, and
+              previous proposal to OpenAI only when you submit. Editing, preview, and the
+              walkthrough work without AI.
             </p>
           </div>
           <div>

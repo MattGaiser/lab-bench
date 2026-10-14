@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises';
 import { exampleLab } from '../src/domain';
 
 test('author, preview the fault, export, import and undo a complete lab', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/#editor');
   await page.getByRole('tab', { name: 'Lab details' }).click();
   await page.getByLabel('Exercise title').fill('Pump holding circuit');
   await page.getByLabel('Learning objective').fill('Explain the holding circuit.');
@@ -56,7 +56,7 @@ test('author, preview the fault, export, import and undo a complete lab', async 
 test('draft reload, invalid import, preflight failure and recovery preserve user work', async ({
   page,
 }) => {
-  await page.goto('/');
+  await page.goto('/#editor');
   await page.getByRole('tab', { name: 'Lab details' }).click();
   await page.getByLabel('Exercise title').fill('Persisted draft');
   await expect(page.getByText('Saved on this device')).toBeVisible();
@@ -76,7 +76,7 @@ test('draft reload, invalid import, preflight failure and recovery preserve user
 });
 
 test('keyboard and drag layout changes can be undone as a single operation', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/#editor');
   const start = page.locator('[data-component="start"]');
   const before = await start.getAttribute('transform');
   await start.focus();
@@ -98,7 +98,7 @@ test('keyboard and drag layout changes can be undone as a single operation', asy
 test('corrupt storage remains available for recovery until explicitly replaced', async ({
   page,
 }) => {
-  await page.goto('/');
+  await page.goto('/#editor');
   await expect(page.getByText('Saved on this device')).toBeVisible();
   await page.evaluate(() => localStorage.setItem('lab-bench:draft:v1', '{bad'));
   await page.reload();
@@ -119,7 +119,7 @@ test('storage failures stay visible and the unsaved draft can be downloaded', as
       throw new DOMException('Quota exceeded', 'QuotaExceededError');
     };
   });
-  await page.goto('/');
+  await page.goto('/#editor');
   await expect(page.getByRole('alert')).toContainText('Browser storage is unavailable');
   const downloading = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Download this draft' }).click();
@@ -128,10 +128,10 @@ test('storage failures stay visible and the unsaved draft can be downloaded', as
 });
 
 test('another tab cannot silently replace the current draft', async ({ context, page }) => {
-  await page.goto('/');
+  await page.goto('/#editor');
   await expect(page.getByText('Saved on this device')).toBeVisible();
   const other = await context.newPage();
-  await other.goto('/');
+  await other.goto('/#editor');
   await expect(other.getByText('Saved on this device')).toBeVisible();
   await page.getByRole('tab', { name: 'Lab details' }).click();
   await page.getByLabel('Exercise title').fill('First tab update');
@@ -147,7 +147,7 @@ test('another tab cannot silently replace the current draft', async ({ context, 
 test('delayed import cannot overwrite edits made while the file is being read', async ({
   page,
 }) => {
-  await page.goto('/');
+  await page.goto('/#editor');
   await page.evaluate(() => {
     const read = File.prototype.text;
     File.prototype.text = async function () {
@@ -171,7 +171,7 @@ test('delayed import cannot overwrite edits made while the file is being read', 
 test('no serious accessibility issues in authoring, preview and the about dialog', async ({
   page,
 }) => {
-  await page.goto('/');
+  await page.goto('/#editor');
   for (const tab of ['Fault setup', 'Lab details', 'Review']) {
     await page.getByRole('tab', { name: tab }).click();
     const report = await new AxeBuilder({ page })
@@ -196,7 +196,7 @@ test('no serious accessibility issues in authoring, preview and the about dialog
 
 test('small-screen authoring and apprentice preview fit the viewport', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto('/');
+  await page.goto('/#editor');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.getByRole('tab', { name: 'Lab details' }).click();
   await page.getByLabel('Exercise title').fill('Mobile authored exercise');
@@ -208,7 +208,7 @@ test('small-screen authoring and apprentice preview fit the viewport', async ({ 
 test('button focus loss releases START and reopening preview begins a fresh attempt', async ({
   page,
 }) => {
-  await page.goto('/');
+  await page.goto('/#editor');
   await page.getByRole('button', { name: 'Apprentice preview', exact: true }).click();
   await page.getByRole('button', { name: 'Turn supply on' }).click();
   await page.getByRole('button', { name: 'Hold START' }).focus();
@@ -223,7 +223,7 @@ test('button focus loss releases START and reopening preview begins a fresh atte
 });
 
 test('Escape cancels a component drag without saving a partial move', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/#editor');
   const component = page.locator('[data-component="start"]');
   const original = await component.getAttribute('transform');
   const box = (await component.boundingBox())!;
@@ -242,7 +242,7 @@ test.describe('touch layout', () => {
   test('apprentices can select and inspect without hitting a small SVG target', async ({
     page,
   }) => {
-    await page.goto('/');
+    await page.goto('/#editor');
     await page.getByRole('button', { name: 'Apprentice preview', exact: true }).tap();
     const viewport = page.getByRole('region', { name: /Circuit diagram/ });
     expect(await viewport.evaluate((e) => e.scrollWidth > e.clientWidth)).toBe(true);
@@ -258,7 +258,7 @@ test.describe('touch layout', () => {
 test('long unbroken authored text wraps in the editor and revealed apprentice hints', async ({
   page,
 }) => {
-  await page.goto('/');
+  await page.goto('/#editor');
   await page.getByLabel('Import lab file').setInputFiles({
     name: 'long-text.json',
     mimeType: 'application/json',

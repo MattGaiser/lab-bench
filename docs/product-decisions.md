@@ -12,7 +12,11 @@ The instructor pain points here are **hypotheses from that public workflow**, no
 
 Lab Bench answers one question: can an instructor make and verify a focused troubleshooting exercise?
 
-The starting point is an editable sample, so the instructor can immediately see what a finished exercise looks like. The canvas and fault inspector remain together. Brief writing has its own panel, and a readiness panel gives actionable checks. Apprentice preview uses a cloned snapshot, so a practice attempt cannot mutate the instructor's draft.
+The starting screen offers three concrete paths: a five-stop walkthrough, an editable sample, and a plain-language scenario request. The sample makes a finished exercise inspectable. The tour highlights the real controls, can be skipped or replayed, and uses a temporary preview without changing the draft. The canvas and fault inspector remain together. Brief writing has its own panel, and a readiness panel gives actionable checks. Apprentice preview uses a cloned snapshot, so a practice attempt cannot mutate the instructor's draft.
+
+Feedback on the initial sample was that the workspace did not make it clear where to start. That prompted the starting screen and walkthrough. This is direct feedback on this work sample, not evidence from Dakota's customers. Whether it improves unassisted completion still needs testing with instructors.
+
+The AI assistant turns a teaching goal into a proposal using the same five-fault contract. The instructor can inspect the answer and the model-derived symptom, revise the proposal, and apply it as one undoable edit. It keeps a bounded recent conversation so answers to clarifying questions remain meaningful. In-progress proposals survive navigation within the page; a reload discards unapplied proposals. Only applied labs enter browser draft storage.
 
 Export is the completion boundary. The instructor gets a versioned file containing the configured exercise and can verify it by importing it into a fresh browser context. There is no decorative assignment button that implies a class received it.
 
@@ -38,6 +42,8 @@ Imports capture the current draft before reading the file. If the draft changes 
 Draft saves are debounced. A write checks that storage still contains the last value this tab read. Web Locks serialize Lab Bench writes where supported; without them, the compare-before-write check is best effort rather than an atomic cross-tab transaction. Storage events surface changes from another tab. The user can download their copy, load the saved draft, or explicitly choose to replace it.
 
 Unreadable stored data is preserved until the user chooses a replacement. Storage denial and quota failures leave the editor usable and offer a downloadable draft. The page warns before leaving when changes have not been saved.
+
+AI is optional and server-side. Structured output constrains the generated fields; the shared domain parser validates them again, fixes topology/layout to the supported template, and requires readiness. The assistant cannot execute code or mutate the browser draft. Syntax validation does not prove the pedagogical wording is accurate, so proposal review and apprentice preview remain explicit steps. API errors, refusals, unsupported requests, cancellation, and timeouts leave the current draft intact. Requests are size-limited and serialized; no automatic retries create surprise duplicate paid calls. The local server is not a public multi-user service.
 
 ## The next product questions
 

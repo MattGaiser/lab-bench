@@ -17,6 +17,7 @@ export default defineConfig({
     },
   ],
   webServer: {
+    env: { OPENAI_API_KEY: '' },
     command: 'node scripts/serve.mjs --port 4187',
     url: 'http://127.0.0.1:4187',
     reuseExistingServer: false,
