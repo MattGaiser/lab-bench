@@ -213,7 +213,7 @@ export default function Preview({
             state={state}
           />
         </div>
-        <aside className="preview-aside">
+        <aside className="preview-aside" aria-label="Inspection and diagnosis" tabIndex={0}>
           <section className="side-card inspect-card">
             <h3>{selected ? targetDetails(selected).label : 'Choose what to inspect'}</h3>
             <label className="field">
