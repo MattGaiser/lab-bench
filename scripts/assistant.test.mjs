@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { createServer, request as httpRequest } from 'node:http';
 import { draftScenario, createAssistantHandler } from './assistant.mjs';
 import { exampleLab } from '../src/domain.ts';
+import { UsageLimitError } from './quota.mjs';
 
 const response = (value) =>
   Response.json({
@@ -10,6 +11,88 @@ const response = (value) =>
     output: [{ type: 'message', content: [{ type: 'output_text', text: JSON.stringify(value) }] }],
   });
 const ready = () => ({ message: 'A holding-circuit exercise.', scenario: exampleLab() });
+
+test('hosted writes require an exact origin and a durable allowance before calling the provider', async (t) => {
+  let calls = 0;
+  let reservations = 0;
+  const handler = createAssistantHandler({
+    hosted: true,
+    publicOrigins: ['https://bench.example', 'https://lab-bench-123.us-central1.run.app'],
+    apiKey: 'test',
+    reserveRequest: async () => {
+      reservations++;
+    },
+    fetchImpl: async () => {
+      calls++;
+      return response(ready());
+    },
+  });
+  const server = createServer((req, res) => void handler(req, res, server.address().port));
+  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  t.after(() => new Promise((resolve) => server.close(resolve)));
+  const send = (body, origin, host = 'bench.example') =>
+    new Promise((resolve, reject) => {
+      const req = httpRequest(
+        `http://127.0.0.1:${server.address().port}/api/scenario`,
+        {
+          method: 'POST',
+          headers: {
+            Host: host,
+            'Content-Type': 'application/json',
+            ...(origin === undefined ? {} : { Origin: origin }),
+          },
+        },
+        (res) => {
+          res.resume();
+          resolve(res.statusCode);
+        },
+      );
+      req.on('error', reject);
+      req.end(body);
+    });
+  for (const origin of [
+    undefined,
+    'null',
+    'https://evil.example',
+    'https://bench.example.evil.test',
+    'http://bench.example',
+  ])
+    assert.equal(await send('{"prompt":"test"}', origin), 403);
+  assert.equal(await send('{"prompt":"test"}', 'https://bench.example', 'evil.example'), 403);
+  assert.equal(await send('{}', 'https://bench.example'), 400);
+  assert.equal(reservations, 0);
+  assert.equal(calls, 0);
+  // Input validation shares the local cooldown; let this intentionally separate request through.
+  await new Promise((resolve) => setTimeout(resolve, 1550));
+  // Firebase keeps the browser Origin but routes with the Cloud Run service Host.
+  assert.equal(
+    await send('{"prompt":"test"}', 'https://bench.example', 'lab-bench-123.us-central1.run.app'),
+    200,
+  );
+  assert.equal(reservations, 1);
+  assert.equal(calls, 1);
+});
+
+test('quota rejection and invalid input never reach the paid provider', async () => {
+  let calls = 0;
+  let reservations = 0;
+  const options = {
+    apiKey: 'test',
+    fetchImpl: async () => {
+      calls++;
+      return response(ready());
+    },
+    reserveRequest: async () => {
+      reservations++;
+      throw new UsageLimitError(503, 'Allowance unavailable');
+    },
+  };
+  await assert.rejects(draftScenario({}, options), { status: 400 });
+  assert.equal(reservations, 0);
+  await assert.rejects(draftScenario({ prompt: 'test' }, options), { status: 503 });
+  assert.equal(calls, 0);
+  assert.equal(reservations, 1);
+});
 test('provider contract, model limits and canonical lab conversion', async () => {
   let called = 0;
   const context = [

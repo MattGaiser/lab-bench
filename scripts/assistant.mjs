@@ -1,5 +1,6 @@
 import { parseLab, FAULTS, faultDetails, exampleLab } from '../src/domain.ts';
 import { parseScenario, scenarioSchema, expectedSymptom } from '../src/scenario.ts';
+import { createUsageReservation, UsageLimitError } from './quota.mjs';
 
 const instructions = `You help instructors author a Lab Bench troubleshooting exercise.
 Only one fixed ideal 24 V start/stop control circuit exists: normally-closed STOP, normally-open START,
@@ -31,7 +32,7 @@ export class AssistantError extends Error {
 
 export async function draftScenario(
   input,
-  { apiKey, model = 'gpt-4o-mini-2024-07-18', fetchImpl = fetch, signal } = {},
+  { apiKey, model = 'gpt-4o-mini-2024-07-18', fetchImpl = fetch, signal, reserveRequest } = {},
 ) {
   if (
     !input ||
@@ -76,6 +77,8 @@ export async function draftScenario(
   const deadline = AbortSignal.any([AbortSignal.timeout(30000), ...(signal ? [signal] : [])]);
   let response;
   try {
+    deadline.throwIfAborted();
+    await reserveRequest?.(deadline);
     response = await fetchImpl('https://api.openai.com/v1/responses', {
       method: 'POST',
       signal: deadline,
@@ -127,7 +130,7 @@ export async function draftScenario(
       .join('');
     return parseScenario(JSON.parse(output));
   } catch (error) {
-    if (error instanceof AssistantError) throw error;
+    if (error instanceof AssistantError || error instanceof UsageLimitError) throw error;
     if (deadline.aborted)
       throw new AssistantError(
         504,
@@ -140,12 +143,21 @@ export async function draftScenario(
   }
 }
 
-/** Local-only API. Enforce same-origin JSON writes before using the paid provider. */
+/** Local API, or a public demo with explicit origins and a persistent usage allowance. */
 export function createAssistantHandler({
   apiKey = process.env.OPENAI_API_KEY,
   model = process.env.OPENAI_MODEL,
   fetchImpl,
+  hosted = Boolean(process.env.K_SERVICE),
+  publicOrigins = (process.env.PUBLIC_ORIGINS ?? '').split(',').filter(Boolean),
+  reserveRequest = createUsageReservation(),
 } = {}) {
+  const origins = publicOrigins.map((origin) => {
+    const url = new URL(origin);
+    if (url.protocol !== 'https:' || url.origin !== origin)
+      throw new Error('PUBLIC_ORIGINS must contain exact HTTPS origins.');
+    return origin;
+  });
   let active = false;
   let nextRequestAt = 0;
   return async (req, res, port) => {
@@ -160,16 +172,20 @@ export function createAssistantHandler({
       });
       res.end(JSON.stringify(body));
     };
-    const allowed = [`127.0.0.1:${port}`, `localhost:${port}`];
+    const allowed = hosted
+      ? origins.map((origin) => new URL(origin).host)
+      : [`127.0.0.1:${port}`, `localhost:${port}`];
     if (
       !allowed.includes(req.headers.host) ||
-      (req.headers.origin && req.headers.origin !== `http://${req.headers.host}`)
+      (hosted
+        ? (req.method === 'POST' || req.headers.origin) && !origins.includes(req.headers.origin)
+        : req.headers.origin && req.headers.origin !== `http://${req.headers.host}`)
     ) {
-      send(403, { error: 'Open Lab Bench directly on this device to use the assistant.' });
+      send(403, { error: 'Open Lab Bench at its configured site address to use the assistant.' });
       return true;
     }
     if (path === '/api/assistant/status' && req.method === 'GET') {
-      send(200, { available: Boolean(apiKey) });
+      send(200, { available: Boolean(apiKey) && (!hosted || Boolean(reserveRequest)) });
       return true;
     }
     if (path !== '/api/scenario') {
@@ -182,6 +198,10 @@ export function createAssistantHandler({
     }
     if (req.headers['content-type']?.split(';')[0] !== 'application/json') {
       send(415, { error: 'Send JSON.' });
+      return true;
+    }
+    if (hosted && !reserveRequest) {
+      send(503, { error: 'AI setup is unavailable. You can still open the sample editor.' });
       return true;
     }
     if (active || Date.now() < nextRequestAt) {
@@ -216,11 +236,18 @@ export function createAssistantHandler({
       nextRequestAt = Date.now() + 1500;
       send(
         200,
-        await draftScenario(input, { apiKey, model, fetchImpl, signal: controller.signal }),
+        await draftScenario(input, {
+          apiKey,
+          model,
+          fetchImpl,
+          signal: controller.signal,
+          reserveRequest: hosted ? reserveRequest : undefined,
+        }),
       );
     } catch (error) {
-      send(error instanceof AssistantError ? error.status : 500, {
-        error: error instanceof AssistantError ? error.message : 'Could not process this request.',
+      const known = error instanceof AssistantError || error instanceof UsageLimitError;
+      send(known ? error.status : 500, {
+        error: known ? error.message : 'Could not process this request.',
       });
     } finally {
       clearTimeout(readTimer);

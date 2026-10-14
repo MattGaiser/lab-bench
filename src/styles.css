@@ -2196,6 +2196,48 @@ h1 {
   gap: 16px;
   margin-top: 25px;
 }
+.assistant-connection-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 24px;
+  margin-bottom: 24px;
+  color: #263f32;
+  background: #edf4e8;
+  border: 2px solid #7a9272;
+  border-left: 6px solid #416b42;
+  border-radius: 12px;
+}
+.assistant-connection-notice > svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+.assistant-connection-notice h2 {
+  margin: 0 0 8px;
+  font-size: 20px;
+  line-height: 1.3;
+}
+.assistant-connection-notice p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+}
+@media (max-width: 600px) {
+  .assistant-connection-notice {
+    display: block;
+    padding: 16px;
+  }
+  .assistant-connection-notice > svg {
+    float: left;
+    margin: 0 10px 6px 0;
+  }
+  .assistant-connection-notice h2 {
+    font-size: 18px;
+  }
+  .assistant-connection-notice p {
+    clear: both;
+  }
+}
 .assistant-submit > span {
   color: var(--muted);
   font-size: 11px;

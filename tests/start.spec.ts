@@ -9,6 +9,64 @@ async function chooseAI(page: Page) {
   await page.getByRole('button', { name: 'Continue', exact: true }).click();
 }
 
+test('slow assistant connection shows a prominent notice while the request stays editable', async ({
+  page,
+}) => {
+  let release!: () => void;
+  const waiting = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route('**/api/assistant/status', async (route) => {
+    await waiting;
+    await route.fulfill({ json: { available: true } });
+  });
+  await chooseAI(page);
+  const notice = page.locator('.assistant-connection-notice');
+  await expect(notice).toBeVisible();
+  await expect(notice).toContainText('Cloud Run may be warming up');
+  const input = page.getByRole('textbox');
+  await input.fill('Keep my teaching goal while the server connects.');
+  await expect(page.getByRole('button', { name: 'Draft my lab' })).toBeDisabled();
+  for (const width of [1440, 320]) {
+    await page.setViewportSize({ width, height: 900 });
+    const bounds = await notice.boundingBox();
+    const field = await input.boundingBox();
+    expect(bounds!.y + bounds!.height).toBeLessThan(field!.y);
+    expect(bounds!.width).toBeGreaterThan(width === 320 ? 220 : 500);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+      true,
+    );
+  }
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  release();
+  await expect(notice).toHaveCount(0);
+  await expect(input).toHaveValue('Keep my teaching goal while the server connects.');
+  await expect(page.getByRole('button', { name: 'Draft my lab' })).toBeEnabled();
+});
+
+test('failed assistant connection can be retried without losing the lesson request', async ({
+  page,
+}) => {
+  let attempts = 0;
+  await page.route('**/api/assistant/status', (route) => {
+    attempts++;
+    return attempts === 1
+      ? route.fulfill({ status: 503, body: 'Service starting' })
+      : route.fulfill({ json: { available: true } });
+  });
+  await chooseAI(page);
+  const input = page.getByRole('textbox');
+  await input.fill('My draft teaching goal');
+  await expect(
+    page.getByText('Could not connect to the assistant.', { exact: false }),
+  ).toBeVisible();
+  await page.getByRole('button', { name: 'Retry connection' }).click();
+  await expect(input).toBeFocused();
+  await expect(input).toHaveValue('My draft teaching goal');
+  await expect(page.getByRole('button', { name: 'Draft my lab' })).toBeEnabled();
+  expect(attempts).toBe(2);
+});
+
 test('one-card entry, sample and resume work without AI', async ({ page }) => {
   await page.goto('/');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Let’s walk the bench.');

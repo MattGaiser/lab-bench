@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useReducer, useRef, useState } from 'react';
 import {
   ArrowDownToLine,
   ArrowUpFromLine,
@@ -107,7 +107,7 @@ export default function App() {
   const unloadState = useRef({ status: visibleSaveStatus, hasOpened });
   unloadState.current = { status: visibleSaveStatus, hasOpened };
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (screen === 'editor') editorHeading.current?.focus({ preventScroll: true });
   }, [screen]);
 
@@ -589,7 +589,7 @@ export default function App() {
         type="file"
         accept=".json,application/json"
         aria-label="Import lab file"
-        className="visually-hidden"
+        hidden
         tabIndex={-1}
         onChange={(e) => {
           const file = e.target.files?.[0];

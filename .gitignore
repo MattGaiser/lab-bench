@@ -6,3 +6,5 @@ artifacts/
 *.local
 .env*
 *.tsbuildinfo
+.firebase/
+*-debug.log

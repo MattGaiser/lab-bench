@@ -32,7 +32,7 @@ The server uses the Responses API with structured output and `store: false`, def
 
 Try: **“Create a 15-minute beginner lab about a pump that runs only while START is held. Teach the holding contact and include two hints.”** Review the brief, answer, model-derived symptom, and hints. Ask for a revision, then choose **Use this lab**. Applying the proposal is one undoable edit. Unsupported scenarios return guidance instead of an invented circuit. Drafting remains a writing aid: instructors must check the wording and preview the behavior.
 
-The server binds to loopback and checks Host/Origin before handling AI requests. It is intended for one local user; public hosting would require authentication and usage controls.
+Locally, the server binds to loopback and checks Host/Origin before handling AI requests. Public deployment pairs Firebase Hosting with a Cloud Run API and a private, persistent request allowance. See [cloud deployment](docs/deployment.md) for configuration and limits.
 
 ## Try the complete workflow
 

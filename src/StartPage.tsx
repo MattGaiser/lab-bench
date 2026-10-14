@@ -44,6 +44,9 @@ export default function StartPage({
   const [step, setStep] = useState(0);
   const [choice, setChoice] = useState<'sample' | 'ai'>('sample');
   const [available, setAvailable] = useState<boolean | null>(null);
+  const [connectionSlow, setConnectionSlow] = useState(false);
+  const [connectionFailed, setConnectionFailed] = useState(false);
+  const [connectionAttempt, setConnectionAttempt] = useState(0);
   const [prompt, setPrompt] = useState('');
   const [proposal, setProposal] = useState<Proposal | null>(null);
   const [busy, setBusy] = useState(false);
@@ -71,21 +74,37 @@ export default function StartPage({
   useEffect(() => {
     if (!active || page !== 'compose') return;
     const controller = new AbortController();
+    setAvailable(null);
+    setConnectionSlow(false);
+    setConnectionFailed(false);
+    const warming = window.setTimeout(() => setConnectionSlow(true), 1500);
     fetch('/api/assistant/status', {
-      signal: AbortSignal.any([controller.signal, AbortSignal.timeout(5000)]),
+      signal: AbortSignal.any([controller.signal, AbortSignal.timeout(30000)]),
     })
-      .then((r) => (r.ok ? r.json() : null))
+      .then(async (r) => {
+        if (!r.ok) throw new Error('Connection failed');
+        const value = await r.json();
+        if (typeof value?.available !== 'boolean') throw new Error('Invalid status');
+        return value;
+      })
       .then((v) => {
         if (!controller.signal.aborted) setAvailable(v?.available === true);
       })
       .catch(() => {
-        if (!controller.signal.aborted) setAvailable(false);
-      });
-    return () => controller.abort();
-  }, [active, page]);
+        if (!controller.signal.aborted) {
+          setAvailable(false);
+          setConnectionFailed(true);
+        }
+      })
+      .finally(() => window.clearTimeout(warming));
+    return () => {
+      controller.abort();
+      window.clearTimeout(warming);
+    };
+  }, [active, page, connectionAttempt]);
   useEffect(() => () => request.current?.abort(), []);
   async function submit() {
-    if (!prompt.trim() || busy) return;
+    if (!prompt.trim() || busy || available !== true) return;
     const controller = new AbortController();
     request.current = controller;
     setBusy(true);
@@ -268,6 +287,20 @@ export default function StartPage({
                     {proposal.message}
                   </p>
                 )}
+                <div role="status" aria-atomic="true">
+                  {available === null && connectionSlow && (
+                    <div className="assistant-connection-notice">
+                      <LoaderCircle size={28} className="spin" aria-hidden="true" />
+                      <div>
+                        <h2>Connecting to the assistant</h2>
+                        <p>
+                          Cloud Run may be warming up after being idle. Keep writing below; drafting
+                          becomes available when the assistant connects.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
@@ -315,11 +348,13 @@ export default function StartPage({
                     <span role="status">
                       {busy
                         ? 'Drafting your scenario…'
-                        : available === false
-                          ? 'AI is unavailable on this server'
-                          : available === null
-                            ? 'Checking assistant…'
-                            : 'Nothing changes until you choose “Use this lab.”'}
+                        : connectionFailed
+                          ? 'Could not connect to the assistant. Your lesson request is saved on this screen.'
+                          : available === false
+                            ? 'AI is unavailable on this server'
+                            : available === null
+                              ? 'Connecting to the assistant…'
+                              : 'Nothing changes until you choose “Use this lab.”'}
                     </span>
                     {busy ? (
                       <button
@@ -360,6 +395,19 @@ export default function StartPage({
                   )}
                   {available === false && (
                     <div className="assistant-offline">
+                      <button
+                        type="button"
+                        className="text-button"
+                        onClick={() => {
+                          setAvailable(null);
+                          setConnectionFailed(false);
+                          setConnectionSlow(false);
+                          setConnectionAttempt((attempt) => attempt + 1);
+                          input.current?.focus();
+                        }}
+                      >
+                        Retry connection
+                      </button>
                       <p>
                         The sample works without AI. You can write your own brief in the editor.
                       </p>
