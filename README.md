@@ -61,6 +61,8 @@ npm run check
 
 `npm test` runs the fast domain tests. After a build, `npm run test:e2e` runs the browser suite. For formatting: `npm run format:check`.
 
+To create a release, commit the source and run `npm run package` (requires Git). This builds from a clean worktree and produces `artifacts/lab-bench-1.0.0.zip` with the committed source, production assets, and a `release.json` identifying the source revision.
+
 ## How it is built
 
 React and TypeScript handle the editor and preview. A small pure domain module owns file parsing, readiness checks, history, and the fixed circuit model. The SVG renderer derives conductor routes from constrained component positions. Vite produces static assets, including locally bundled fonts. The supplied Node server only serves those assets on loopback.
@@ -68,6 +70,7 @@ React and TypeScript handle the editor and preview. A small pure domain module o
 - `src/domain.ts`: canonical lab contract, validation, circuit transitions, editor history.
 - `src/storage.ts`: draft loading and compare-before-write persistence.
 - `src/CircuitCanvas.tsx`: SVG rendering and pointer/keyboard interactions.
+- `src/Inspector.tsx`: the lab brief, fault settings, and readiness checks.
 - `src/Preview.tsx`: apprentice controls, inspection, observations, and diagnosis.
 - `src/App.tsx`: authoring workflow and file/storage integration.
 - `tests/workflow.spec.ts`: tests against the built application in a real browser.

@@ -16,7 +16,7 @@ import {
   Trash2,
   Unplug,
 } from 'lucide-react';
-import { checkLab, wireInfo, WIRES } from './domain';
+import { checkLab, initialCircuit, stepCircuit, wireInfo, WIRES } from './domain';
 import type { Lab, WireId } from './domain';
 export type Tab = 'details' | 'fault' | 'review';
 type Props = {
@@ -48,6 +48,12 @@ export default function Inspector({
   const ready = checks.every((c) => c.pass);
   const completed = checks.filter((c) => c.pass).length;
   const showTab = setTab;
+  const held = stepCircuit(
+    stepCircuit(initialCircuit(), 'power', lab.fault),
+    'start-down',
+    lab.fault,
+  );
+  const released = stepCircuit(held, 'start-up', lab.fault);
   return (
     <aside className="inspector" aria-label="Lab settings">
       <div className="inspector-title">
@@ -252,6 +258,17 @@ export default function Inspector({
                 <p className="empty-note">No fault placed. Select a conductor above to add one.</p>
               )}
             </div>
+            <div className="expected-behavior">
+              <span className="overline">EXPECTED RESPONSE</span>
+              <p>
+                START held: K1 {held.coilOn ? 'energizes' : 'stays off'}.<br />
+                START released: K1 {released.coilOn ? 'stays energized' : 'is off'}.
+              </p>
+              <button className="text-button small" onClick={() => showTab('details')}>
+                Check that your brief matches
+                <ArrowUpRight size={13} />
+              </button>
+            </div>
             <div className="tip-card">
               <Lightbulb size={19} />
               <div>
@@ -262,7 +279,11 @@ export default function Inspector({
                 </p>
               </div>
             </div>
-            <button className="button secondary full preview-panel-button" onClick={previewLab}>
+            <button
+              id="preview-fault"
+              className="button secondary full preview-panel-button"
+              onClick={previewLab}
+            >
               <Play size={15} />
               Try the exercise
               <ArrowUpRight size={15} />
@@ -302,7 +323,7 @@ export default function Inspector({
                 </button>
               ))}
             </div>
-            <button className="button secondary full" onClick={previewLab}>
+            <button id="preview-review" className="button secondary full" onClick={previewLab}>
               <Play size={15} />
               Apprentice preview
             </button>

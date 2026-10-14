@@ -1,4 +1,4 @@
-import { useEffect, useReducer, useState } from 'react';
+import { useEffect, useReducer, useRef, useState } from 'react';
 import {
   ArrowLeft,
   Check,
@@ -11,10 +11,14 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import CircuitCanvas from './CircuitCanvas';
-import { initialCircuit, stepCircuit, wireInfo } from './domain';
+import { initialCircuit, stepCircuit, wireInfo, WIRES } from './domain';
 import type { CircuitAction, Lab, WireId } from './domain';
 
 export default function Preview({ lab, onClose }: { lab: Lab; onClose: () => void }) {
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    headingRef.current?.focus({ preventScroll: true });
+  }, []);
   const [state, dispatch] = useReducer(
     (s: ReturnType<typeof initialCircuit>, a: CircuitAction) => stepCircuit(s, a, lab.fault),
     undefined,
@@ -88,7 +92,9 @@ export default function Preview({ lab, onClose }: { lab: Lab; onClose: () => voi
       <div className="page-heading preview-heading">
         <div>
           <span className="overline">MOTOR CONTROLS / TROUBLESHOOTING</span>
-          <h1>{lab.title}</h1>
+          <h1 ref={headingRef} tabIndex={-1}>
+            {lab.title}
+          </h1>
           <p>{lab.objective}</p>
         </div>
         <span className="duration">
@@ -191,6 +197,25 @@ export default function Preview({ lab, onClose }: { lab: Lab; onClose: () => voi
                 ? `${wireInfo[selected].tag} · ${wireInfo[selected].name}`
                 : 'Select a conductor'}
             </h3>
+            <label className="field">
+              <span>Conductor to inspect</span>
+              <select
+                value={selected ?? ''}
+                onChange={(e) => {
+                  setSelected(e.target.value as WireId);
+                  setAnswer(null);
+                }}
+              >
+                <option value="" disabled>
+                  Choose W1–W5
+                </option>
+                {WIRES.map((id) => (
+                  <option key={id} value={id}>
+                    {wireInfo[id].tag} · {wireInfo[id].name}
+                  </option>
+                ))}
+              </select>
+            </label>
             <p>
               {selected
                 ? wireInfo[selected].description

@@ -66,9 +66,17 @@ export default function App() {
   const [message, setMessage] = useState<{ text: string; error?: boolean } | null>(null);
   const aboutRef = useRef<HTMLDialogElement>(null);
   const importRef = useRef<HTMLInputElement>(null);
+  const previewTrigger = useRef<string | null>(null);
   const checks = checkLab(lab);
   const ready = checks.every((c) => c.pass);
   const completed = checks.filter((c) => c.pass).length;
+
+  useEffect(() => {
+    if (!preview && previewTrigger.current) {
+      document.getElementById(previewTrigger.current)?.focus({ preventScroll: true });
+      previewTrigger.current = null;
+    }
+  }, [preview]);
 
   useEffect(() => {
     if (saveStatus === 'damaged' || saveStatus === 'conflict') return;
@@ -215,6 +223,7 @@ export default function App() {
       });
       return;
     }
+    previewTrigger.current = document.activeElement?.id || 'preview-main';
     setPreview(structuredClone(lab));
     window.scrollTo({ top: 0 });
   };
@@ -287,7 +296,7 @@ export default function App() {
               <p>Set the challenge. Shape the learning. Try it from their side.</p>
             </div>
             <div className="heading-actions">
-              <button className="button secondary" onClick={previewLab}>
+              <button id="preview-main" className="button secondary" onClick={previewLab}>
                 <Play size={16} />
                 Apprentice preview
               </button>

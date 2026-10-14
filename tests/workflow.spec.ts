@@ -12,6 +12,7 @@ test('author, preview the fault, export, import and undo a complete lab', async 
   await expect(page.getByText('Saved on this device')).toBeVisible();
   await page.getByRole('button', { name: 'Apprentice preview', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Pump holding circuit' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Pump holding circuit' })).toBeFocused();
   await expect(page.getByText('W3 / OPEN')).toHaveCount(0);
   await page.getByRole('button', { name: 'Turn supply on' }).click();
   await page.getByRole('button', { name: 'W3 Holding branch', exact: true }).press('Enter');
@@ -31,6 +32,7 @@ test('author, preview the fault, export, import and undo a complete lab', async 
   await page.getByRole('button', { name: 'Check diagnosis' }).click();
   await expect(page.getByText('Fault located.')).toBeVisible();
   await page.getByRole('button', { name: 'Back to authoring' }).click();
+  await expect(page.getByRole('button', { name: 'Apprentice preview', exact: true })).toBeFocused();
   const downloadPromise = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Export lab', exact: true }).click();
   const download = await downloadPromise;
@@ -201,4 +203,87 @@ test('small-screen authoring and apprentice preview fit the viewport', async ({ 
   await page.getByRole('button', { name: 'Apprentice preview', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Mobile authored exercise' })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
+test('button focus loss releases START and reopening preview begins a fresh attempt', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Apprentice preview', exact: true }).click();
+  await page.getByRole('button', { name: 'Turn supply on' }).click();
+  await page.getByRole('button', { name: 'Hold START' }).focus();
+  await page.keyboard.down('Space');
+  await expect(page.getByRole('status').filter({ hasText: 'K1 energized' })).toBeVisible();
+  await page.keyboard.press('Tab');
+  await expect(page.getByRole('status').filter({ hasText: 'K1 de-energized' })).toBeVisible();
+  await page.keyboard.up('Space');
+  await page.getByRole('button', { name: 'Back to authoring' }).click();
+  await page.getByRole('button', { name: 'Apprentice preview', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Turn supply on' })).toBeVisible();
+});
+
+test('Escape cancels a component drag without saving a partial move', async ({ page }) => {
+  await page.goto('/');
+  const component = page.locator('[data-component="start"]');
+  const original = await component.getAttribute('transform');
+  const box = (await component.boundingBox())!;
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width / 2 + 30, box.y + box.height / 2, { steps: 3 });
+  await expect(component).not.toHaveAttribute('transform', original!);
+  await page.keyboard.press('Escape');
+  await page.mouse.up();
+  await expect(component).toHaveAttribute('transform', original!);
+  await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled();
+});
+
+test.describe('touch layout', () => {
+  test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  test('apprentices can select and inspect without hitting a small SVG target', async ({
+    page,
+  }) => {
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Apprentice preview', exact: true }).tap();
+    const viewport = page.getByRole('region', { name: /Circuit diagram/ });
+    expect(await viewport.evaluate((e) => e.scrollWidth > e.clientWidth)).toBe(true);
+    await page.getByLabel('Conductor to inspect').selectOption('hold');
+    await page.getByRole('button', { name: 'Inspect isolated conductor' }).tap();
+    await expect(page.getByRole('status').filter({ hasText: 'Open conductor' })).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+      true,
+    );
+  });
+});
+
+test('long unbroken authored text wraps in the editor and revealed apprentice hints', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await page.getByLabel('Import lab file').setInputFiles({
+    name: 'long-text.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from(
+      JSON.stringify({
+        ...exampleLab(),
+        title: 'T'.repeat(80),
+        objective: 'O'.repeat(400),
+        briefing: 'B'.repeat(2000),
+        hints: ['H'.repeat(300)],
+      }),
+    ),
+  });
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 1000 });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+      true,
+    );
+  }
+  await page.getByRole('button', { name: 'Apprentice preview', exact: true }).first().click();
+  await page.getByRole('button', { name: 'Reveal hint 1 of 1' }).click();
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 1000 });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+      true,
+    );
+  }
 });

@@ -14,4 +14,4 @@ for (const name of packages) {
   const license = await readFile(new URL('LICENSE', root), 'utf8');
   output += `${'='.repeat(72)}\n${name} ${metadata.version}\n${'='.repeat(72)}\n\n${license.trim()}\n\n`;
 }
-await writeFile(new URL('../THIRD_PARTY_NOTICES.txt', import.meta.url), output);
+await writeFile(new URL('../THIRD_PARTY_NOTICES.txt', import.meta.url), output.trimEnd() + '\n');

@@ -451,9 +451,24 @@ h1 {
 .circuit-svg {
   width: 100%;
   display: block;
-  touch-action: none;
+  touch-action: pan-x pan-y pinch-zoom;
   overflow: hidden;
   min-height: 340px;
+}
+.diagram-viewport {
+  overflow-x: auto;
+}
+.component.movable,
+.hand-tool .circuit-svg {
+  touch-action: none;
+}
+.expected-behavior {
+  margin-top: 18px;
+}
+.expected-behavior p {
+  font-size: 11px;
+  color: var(--muted);
+  margin: 8px 0;
 }
 .canvas-bottom-note {
   display: flex;
@@ -682,6 +697,16 @@ h1 {
   line-height: 1.6;
   margin-top: 4px;
   max-width: 660px;
+  overflow-wrap: anywhere;
+}
+.below-canvas > div:not(.objective-icon),
+.preview-heading > div {
+  min-width: 0;
+}
+.preview-heading p,
+.hints-box p span {
+  overflow-wrap: anywhere;
+  min-width: 0;
 }
 .below-canvas > .text-button {
   margin-left: auto;
@@ -1738,7 +1763,8 @@ h1 {
     background-size: 13px 13px;
   }
   .circuit-svg {
-    min-height: 290px;
+    min-width: 700px;
+    min-height: 396px;
   }
   .board-caption {
     top: 15px;

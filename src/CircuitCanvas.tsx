@@ -48,7 +48,7 @@ export default function CircuitCanvas({
   const labels: Record<WireId, Point> = {
     supply: { x: 119, y: stop.y - 20 },
     start: { x: 336, y: start.y - 20 },
-    hold: { x: 336, y: aux.y + 29 },
+    hold: { x: 256, y: aux.y + 29 },
     coil: { x: 604, y: coil.y - 20 },
     return: { x: 809, y: coil.y - 20 },
   };
@@ -165,201 +165,215 @@ export default function CircuitCanvas({
           <span className="status-dot" />
           {preview ? 'APPRENTICE VIEW · FAULT HIDDEN' : 'INSTRUCTOR VIEW · FAULT VISIBLE'}
         </div>
-        <svg
-          ref={svgRef}
-          viewBox="0 0 920 520"
-          className="circuit-svg"
-          role="group"
-          aria-label="Start-stop control circuit. Five selectable conductors and four components."
-          onPointerDown={(e) => {
-            if (!hand || (e.target as Element).closest('[data-component], [data-wire]')) return;
-            panning.current = { point: toSvg(e.clientX, e.clientY), pan };
-            e.currentTarget.setPointerCapture(e.pointerId);
-          }}
-          onPointerMove={(e) => {
-            if (moving.current) {
-              const p = toBoard(e.clientX, e.clientY);
-              const next = constrain(moving.current.id, {
-                x: p.x - moving.current.offset.x,
-                y: p.y - moving.current.offset.y,
-              });
-              moving.current.point = next;
-              setDrag({ id: moving.current.id, point: next });
-            } else if (panning.current) {
-              const p = toSvg(e.clientX, e.clientY);
-              setPan({
-                x: Math.max(
-                  -300,
-                  Math.min(300, panning.current.pan.x + p.x - panning.current.point.x),
-                ),
-                y: Math.max(
-                  -180,
-                  Math.min(180, panning.current.pan.y + p.y - panning.current.point.y),
-                ),
-              });
-            }
-          }}
-          onPointerUp={() => finishDrag(true)}
-          onPointerCancel={() => finishDrag(false)}
-          onKeyDown={(e) => {
-            if (e.key === 'Escape') finishDrag(false);
-          }}
+        <div
+          className="diagram-viewport"
+          tabIndex={0}
+          role="region"
+          aria-label="Circuit diagram. On small screens, scroll horizontally to see the full circuit."
         >
-          <g
-            transform={`translate(${460 + pan.x} ${260 + pan.y}) scale(${zoom}) translate(-460 -260)`}
+          <svg
+            ref={svgRef}
+            viewBox="0 0 920 520"
+            className="circuit-svg"
+            role="group"
+            aria-label="Start-stop control circuit. Five selectable conductors and four components."
+            onPointerDown={(e) => {
+              if (!hand || (e.target as Element).closest('[data-component], [data-wire]')) return;
+              panning.current = { point: toSvg(e.clientX, e.clientY), pan };
+              e.currentTarget.setPointerCapture(e.pointerId);
+            }}
+            onPointerMove={(e) => {
+              if (moving.current) {
+                const p = toBoard(e.clientX, e.clientY);
+                const next = constrain(moving.current.id, {
+                  x: p.x - moving.current.offset.x,
+                  y: p.y - moving.current.offset.y,
+                });
+                moving.current.point = next;
+                setDrag({ id: moving.current.id, point: next });
+              } else if (panning.current) {
+                const p = toSvg(e.clientX, e.clientY);
+                setPan({
+                  x: Math.max(
+                    -300,
+                    Math.min(300, panning.current.pan.x + p.x - panning.current.point.x),
+                  ),
+                  y: Math.max(
+                    -180,
+                    Math.min(180, panning.current.pan.y + p.y - panning.current.point.y),
+                  ),
+                });
+              }
+            }}
+            onPointerUp={() => finishDrag(true)}
+            onPointerCancel={() => finishDrag(false)}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') finishDrag(false);
+            }}
           >
-            <path d="M80 120V420 M840 120V420" className="rail" />
-            <text x="80" y="98" textAnchor="middle" className="rail-label">
-              +24 V
-            </text>
-            <text x="840" y="98" textAnchor="middle" className="rail-label">
-              0 V
-            </text>
-            <text x="80" y="450" textAnchor="middle" className="terminal-label">
-              L+
-            </text>
-            <text x="840" y="450" textAnchor="middle" className="terminal-label">
-              L−
-            </text>
-            <path
-              d={`M ${right(stop)} ${stop.y} H 300 V 260 H 335 M ${right(start)} ${start.y} H 600 V 260 M ${right(aux)} ${aux.y} H 600 V 260`}
-              className="wire-path"
-            />
-            {WIRES.map((id) => {
-              const fault = !preview && lab.fault === id;
-              return (
-                <g
-                  key={id}
-                  data-wire={id}
-                  role="button"
-                  tabIndex={0}
-                  aria-label={`${wireInfo[id].tag} ${wireInfo[id].name}${fault ? ', open fault' : ''}`}
-                  aria-pressed={selected === id}
-                  className={`wire ${selected === id ? 'selected' : ''} ${fault ? 'faulted' : ''}`}
-                  onClick={() => onSelect(id)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
+            <g
+              transform={`translate(${460 + pan.x} ${260 + pan.y}) scale(${zoom}) translate(-460 -260)`}
+            >
+              <path d="M80 120V420 M840 120V420" className="rail" />
+              <text x="80" y="98" textAnchor="middle" className="rail-label">
+                +24 V
+              </text>
+              <text x="840" y="98" textAnchor="middle" className="rail-label">
+                0 V
+              </text>
+              <text x="80" y="450" textAnchor="middle" className="terminal-label">
+                L+
+              </text>
+              <text x="840" y="450" textAnchor="middle" className="terminal-label">
+                L−
+              </text>
+              <path
+                d={`M ${right(stop)} ${stop.y} H 300 V 260 H 335 M ${right(start)} ${start.y} H 600 V 260 M ${right(aux)} ${aux.y} H 600 V 260`}
+                className="wire-path"
+              />
+              {WIRES.map((id) => {
+                const fault = !preview && lab.fault === id;
+                return (
+                  <g
+                    key={id}
+                    data-wire={id}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`${wireInfo[id].tag} ${wireInfo[id].name}${fault ? ', open fault' : ''}`}
+                    aria-pressed={selected === id}
+                    className={`wire ${selected === id ? 'selected' : ''} ${fault ? 'faulted' : ''}`}
+                    onClick={() => onSelect(id)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        onSelect(id);
+                      }
+                    }}
+                  >
+                    <path d={paths[id]} className="wire-hit" />
+                    <path d={paths[id]} className="wire-halo" />
+                    <path d={paths[id]} className="wire-path" />
+                    <g transform={`translate(${labels[id].x} ${labels[id].y})`}>
+                      <rect
+                        x="-5"
+                        y="-14"
+                        width={fault ? 76 : 31}
+                        height="23"
+                        rx="5"
+                        className="wire-tag-bg"
+                      />
+                      <text className="wire-tag" y="2">
+                        {wireInfo[id].tag}
+                        {fault ? ' / OPEN' : ''}
+                      </text>
+                    </g>
+                  </g>
+                );
+              })}
+              {[
+                { x: 335, y: 260 },
+                { x: 600, y: 260 },
+                { x: 80, y: 260 },
+                { x: 840, y: 260 },
+              ].map((p, i) => (
+                <circle key={i} cx={p.x} cy={p.y} r="4" className="junction" />
+              ))}
+              {COMPONENTS.map((id) => {
+                const p = positions[id];
+                const closed =
+                  id === 'stop'
+                    ? !state?.stopHeld
+                    : id === 'start'
+                      ? !!state?.startHeld
+                      : id === 'aux'
+                        ? !!state?.coilOn
+                        : !!state?.coilOn;
+                return (
+                  <g
+                    key={id}
+                    data-component={id}
+                    transform={`translate(${p.x} ${p.y})`}
+                    className={`component ${!preview ? 'movable' : ''} ${id === 'coil' && state?.coilOn ? 'energized' : ''}`}
+                    tabIndex={preview ? undefined : 0}
+                    role={preview ? undefined : 'button'}
+                    aria-label={`${componentInfo[id].label}${!preview ? '. Drag or use arrow keys to move within its layout area.' : ''}`}
+                    onPointerDown={(e) => {
+                      if (preview || hand || e.button !== 0) return;
                       e.preventDefault();
-                      onSelect(id);
-                    }
-                  }}
-                >
-                  <path d={paths[id]} className="wire-hit" />
-                  <path d={paths[id]} className="wire-halo" />
-                  <path d={paths[id]} className="wire-path" />
-                  <g transform={`translate(${labels[id].x} ${labels[id].y})`}>
+                      e.stopPropagation();
+                      const point = toBoard(e.clientX, e.clientY);
+                      moving.current = {
+                        id,
+                        point: p,
+                        offset: { x: point.x - p.x, y: point.y - p.y },
+                      };
+                      setDrag({ id, point: p });
+                      svgRef.current?.setPointerCapture(e.pointerId);
+                      e.currentTarget.focus();
+                    }}
+                    onKeyDown={(e) => {
+                      if (
+                        preview ||
+                        !['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)
+                      )
+                        return;
+                      e.preventDefault();
+                      onMove?.(
+                        id,
+                        constrain(id, {
+                          x: p.x + (e.key === 'ArrowLeft' ? -10 : e.key === 'ArrowRight' ? 10 : 0),
+                          y: p.y + (e.key === 'ArrowUp' ? -10 : e.key === 'ArrowDown' ? 10 : 0),
+                        }),
+                      );
+                    }}
+                  >
                     <rect
-                      x="-5"
-                      y="-14"
-                      width={fault ? 76 : 31}
-                      height="23"
-                      rx="5"
-                      className="wire-tag-bg"
+                      x="-55"
+                      y="-48"
+                      width="110"
+                      height="96"
+                      rx="10"
+                      className="component-box"
                     />
-                    <text className="wire-tag" y="2">
-                      {wireInfo[id].tag}
-                      {fault ? ' / OPEN' : ''}
+                    <text y="-28" textAnchor="middle" className="component-name">
+                      {componentInfo[id].label}
+                    </text>
+                    {id === 'coil' ? (
+                      <>
+                        <path d="M-55 0H-22 M22 0H55" className="symbol" />
+                        <circle r="20" className="coil-circle" />
+                        <text y="5" textAnchor="middle" className="coil-letter">
+                          K1
+                        </text>
+                      </>
+                    ) : (
+                      <>
+                        <path d="M-55 0H-17 M17 0H55" className="symbol" />
+                        <path
+                          d={closed ? 'M-17 -13V13 M17 -13V13 M-17 0H17' : 'M-17 -13V13 M17 -13V13'}
+                          className="symbol"
+                        />
+                        {id === 'stop' && <path d="M-23 14L23 -14" className="symbol" />}
+                      </>
+                    )}
+                    <circle cx="-55" r="4" className="terminal" />
+                    <circle cx="55" r="4" className="terminal" />
+                    <text y="35" textAnchor="middle" className="component-detail">
+                      {id === 'coil' && state?.coilOn ? 'Energized' : componentInfo[id].detail}
                     </text>
                   </g>
-                </g>
-              );
-            })}
-            {[
-              { x: 335, y: 260 },
-              { x: 600, y: 260 },
-              { x: 80, y: 260 },
-              { x: 840, y: 260 },
-            ].map((p, i) => (
-              <circle key={i} cx={p.x} cy={p.y} r="4" className="junction" />
-            ))}
-            {COMPONENTS.map((id) => {
-              const p = positions[id];
-              const closed =
-                id === 'stop'
-                  ? !state?.stopHeld
-                  : id === 'start'
-                    ? !!state?.startHeld
-                    : id === 'aux'
-                      ? !!state?.coilOn
-                      : !!state?.coilOn;
-              return (
-                <g
-                  key={id}
-                  data-component={id}
-                  transform={`translate(${p.x} ${p.y})`}
-                  className={`component ${!preview ? 'movable' : ''} ${id === 'coil' && state?.coilOn ? 'energized' : ''}`}
-                  tabIndex={preview ? undefined : 0}
-                  role={preview ? undefined : 'button'}
-                  aria-label={`${componentInfo[id].label}${!preview ? '. Drag or use arrow keys to move within its layout area.' : ''}`}
-                  onPointerDown={(e) => {
-                    if (preview || hand || e.button !== 0) return;
-                    e.preventDefault();
-                    e.stopPropagation();
-                    const point = toBoard(e.clientX, e.clientY);
-                    moving.current = {
-                      id,
-                      point: p,
-                      offset: { x: point.x - p.x, y: point.y - p.y },
-                    };
-                    setDrag({ id, point: p });
-                    svgRef.current?.setPointerCapture(e.pointerId);
-                    e.currentTarget.focus();
-                  }}
-                  onKeyDown={(e) => {
-                    if (
-                      preview ||
-                      !['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)
-                    )
-                      return;
-                    e.preventDefault();
-                    onMove?.(
-                      id,
-                      constrain(id, {
-                        x: p.x + (e.key === 'ArrowLeft' ? -10 : e.key === 'ArrowRight' ? 10 : 0),
-                        y: p.y + (e.key === 'ArrowUp' ? -10 : e.key === 'ArrowDown' ? 10 : 0),
-                      }),
-                    );
-                  }}
-                >
-                  <rect x="-55" y="-48" width="110" height="96" rx="10" className="component-box" />
-                  <text y="-28" textAnchor="middle" className="component-name">
-                    {componentInfo[id].label}
-                  </text>
-                  {id === 'coil' ? (
-                    <>
-                      <path d="M-55 0H-22 M22 0H55" className="symbol" />
-                      <circle r="20" className="coil-circle" />
-                      <text y="5" textAnchor="middle" className="coil-letter">
-                        K1
-                      </text>
-                    </>
-                  ) : (
-                    <>
-                      <path d="M-55 0H-17 M17 0H55" className="symbol" />
-                      <path
-                        d={closed ? 'M-17 -13V13 M17 -13V13 M-17 0H17' : 'M-17 -13V13 M17 -13V13'}
-                        className="symbol"
-                      />
-                      {id === 'stop' && <path d="M-23 14L23 -14" className="symbol" />}
-                    </>
-                  )}
-                  <circle cx="-55" r="4" className="terminal" />
-                  <circle cx="55" r="4" className="terminal" />
-                  <text y="35" textAnchor="middle" className="component-detail">
-                    {id === 'coil' && state?.coilOn ? 'Energized' : componentInfo[id].detail}
-                  </text>
-                </g>
-              );
-            })}
-            <path
-              d={`M${aux.x + 5} ${aux.y + 60}H${coil.x}V${coil.y + 64}`}
-              className="mechanical-link"
-            />
-            <text x="590" y={aux.y + 81} textAnchor="middle" className="link-label">
-              K1 coil operates K1 auxiliary contact
-            </text>
-          </g>
-        </svg>
+                );
+              })}
+              <path
+                d={`M${aux.x + 5} ${aux.y + 60}H${coil.x}V${coil.y + 64}`}
+                className="mechanical-link"
+              />
+              <text x="590" y={aux.y + 81} textAnchor="middle" className="link-label">
+                K1 coil operates K1 auxiliary contact
+              </text>
+            </g>
+          </svg>
+        </div>
         <div className="canvas-bottom-note">
           <span>
             {preview
