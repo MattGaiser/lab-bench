@@ -18,6 +18,8 @@ In the editor, the authoring panel appears before the canvas in reading order an
 
 Feedback on the work sample identified an unclear starting point, competing entry options, copy that explained too little, and unused screen space. The sequential cards and wider explanatory layout address those observations. This is direct feedback on this work sample, not evidence from Dakota's customers. Whether it improves unassisted completion still needs testing with instructors.
 
+Later feedback exposed actions whose results were hidden in another panel or unchanged on repeat use. Applying suggested text now names the fields it changed and retains an applied state; other mutations and repeated checks give concise confirmations. Notifications preserve keyboard position and pause while being read or focused. The preview's inspection and diagnosis panel follows desktop scrolling, with its own scroll area on short windows and normal page flow on phones.
+
 The AI assistant turns a teaching goal into a proposal using the same eight-fault contract. The instructor can inspect the answer and the model-derived symptom, revise the proposal, and apply it as one undoable edit. It keeps a bounded recent conversation so answers to clarifying questions remain meaningful. In-progress proposals survive navigation within the page; a reload discards unapplied proposals. Only applied labs enter browser draft storage.
 
 Export is the completion boundary. The instructor gets a versioned file containing the configured exercise and can verify it by importing it into a fresh browser context. There is no decorative assignment button that implies a class received it.
