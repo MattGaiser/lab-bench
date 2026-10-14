@@ -6,7 +6,6 @@ import {
   ChevronRight,
   Circle,
   FileCheck2,
-  Info,
   Play,
   Plus,
   RefreshCw,
@@ -17,6 +16,7 @@ import {
 } from 'lucide-react';
 import { checkLab, initialCircuit, stepCircuit, wireInfo, WIRES } from './domain';
 import type { Lab, WireId } from './domain';
+import { revealAboveFooter } from './focus';
 export type Tab = 'details' | 'fault' | 'review';
 type Props = {
   lab: Lab;
@@ -62,11 +62,14 @@ export default function Inspector({
   );
   const released = stepCircuit(held, 'start-up', lab.fault);
   return (
-    <aside className="inspector" aria-label="Lab settings">
+    <aside
+      className="inspector"
+      aria-label="Lab settings"
+      onFocusCapture={(event) => revealAboveFooter(event, '.inspector-footer')}
+    >
       <div className="inspector-title">
         <SlidersHorizontal size={17} />
         <h2>Build the exercise</h2>
-        <span>01</span>
       </div>
       <div className="inspector-tabs" role="tablist" aria-label="Authoring panels">
         {(['details', 'fault', 'review'] as Tab[]).map((name, i) => (
@@ -100,99 +103,114 @@ export default function Inspector({
       >
         {tab === 'details' && (
           <>
-            <div className="panel-intro">
-              <h3>Write the brief.</h3>
-              <p>
-                Write what apprentices should observe and investigate. Keep the fault location out
-                of the instructions.
-              </p>
-            </div>
-            <label className="field">
-              <span>Exercise title</span>
-              <input
-                ref={titleRef}
-                value={lab.title}
-                maxLength={80}
-                onChange={(e) => update({ title: e.target.value }, 'title')}
-                onBlur={endGroup}
-              />
-            </label>
-            <label className="field">
-              <span>Learning objective</span>
-              <textarea
-                value={lab.objective}
-                maxLength={400}
-                rows={3}
-                onChange={(e) => update({ objective: e.target.value }, 'objective')}
-                onBlur={endGroup}
-              />
-            </label>
-            <label className="field">
-              <span>Apprentice instructions</span>
-              <textarea
-                value={lab.briefing}
-                maxLength={2000}
-                rows={5}
-                onChange={(e) => update({ briefing: e.target.value }, 'briefing')}
-                onBlur={endGroup}
-              />
-            </label>
-            <label className="field">
-              <span>Suggested duration</span>
-              <select
-                value={lab.durationMinutes}
-                onChange={(e) => update({ durationMinutes: Number(e.target.value) })}
-              >
-                {Array.from({ length: 56 }, (_, i) => i + 5).map((n) => (
-                  <option value={n} key={n}>
-                    {n} minutes
-                  </option>
-                ))}
-              </select>
-            </label>
-            <div className="section-line hints-title">
-              <h3>Hints</h3>
-              <span className="small muted">Optional · {lab.hints.length}/3</span>
-            </div>
-            <p className="field-help">Revealed one at a time, when the apprentice asks.</p>
-            {lab.hints.map((hint, i) => (
-              <div className="hint-field" key={i}>
+            <details className="disclosure" name="lab-details" id="details-basic">
+              <summary>
+                <span>Title and duration</span>
+                <small>{lab.durationMinutes} min</small>
+              </summary>
+              <div className="disclosure-body">
                 <label className="field">
-                  <span>Hint {i + 1}</span>
-                  <textarea
-                    value={hint}
-                    maxLength={300}
-                    rows={2}
-                    onChange={(e) =>
-                      update(
-                        { hints: lab.hints.map((h, j) => (j === i ? e.target.value : h)) },
-                        `hint-${i}`,
-                      )
-                    }
+                  <span>Exercise title</span>
+                  <input
+                    ref={titleRef}
+                    value={lab.title}
+                    maxLength={80}
+                    onChange={(e) => update({ title: e.target.value }, 'title')}
                     onBlur={endGroup}
                   />
                 </label>
+                <label className="field">
+                  <span>Suggested duration</span>
+                  <select
+                    value={lab.durationMinutes}
+                    onChange={(e) => update({ durationMinutes: Number(e.target.value) })}
+                  >
+                    {Array.from({ length: 56 }, (_, i) => i + 5).map((n) => (
+                      <option value={n} key={n}>
+                        {n} minutes
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+            </details>
+            <details className="disclosure" name="lab-details" id="details-brief">
+              <summary>
+                <span>Objective and instructions</span>
+              </summary>
+              <div className="disclosure-body">
+                <p className="field-help">
+                  Write what apprentices should observe and investigate. Keep the fault location out
+                  of the instructions.
+                </p>
+                <label className="field">
+                  <span>Learning objective</span>
+                  <textarea
+                    id="field-objective"
+                    value={lab.objective}
+                    maxLength={400}
+                    rows={3}
+                    onChange={(e) => update({ objective: e.target.value }, 'objective')}
+                    onBlur={endGroup}
+                  />
+                </label>
+                <label className="field">
+                  <span>Apprentice instructions</span>
+                  <textarea
+                    id="field-briefing"
+                    value={lab.briefing}
+                    maxLength={2000}
+                    rows={5}
+                    onChange={(e) => update({ briefing: e.target.value }, 'briefing')}
+                    onBlur={endGroup}
+                  />
+                </label>
+              </div>
+            </details>
+            <details className="disclosure" name="lab-details" id="details-hints">
+              <summary>
+                <span>Hints</span>
+                <small>{lab.hints.length} of 3 - Optional</small>
+              </summary>
+              <div className="disclosure-body">
+                <p className="field-help">Revealed one at a time, when the apprentice asks.</p>
+                {lab.hints.map((hint, i) => (
+                  <div className="hint-field" key={i}>
+                    <label className="field">
+                      <span>Hint {i + 1}</span>
+                      <textarea
+                        id={`field-hint-${i}`}
+                        value={hint}
+                        maxLength={300}
+                        rows={2}
+                        onChange={(e) =>
+                          update(
+                            { hints: lab.hints.map((h, j) => (j === i ? e.target.value : h)) },
+                            `hint-${i}`,
+                          )
+                        }
+                        onBlur={endGroup}
+                      />
+                    </label>
+                    <button
+                      className="icon-button"
+                      aria-label={`Remove hint ${i + 1}`}
+                      onClick={() => update({ hints: lab.hints.filter((_, j) => j !== i) })}
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  </div>
+                ))}
                 <button
-                  className="icon-button"
-                  aria-label={`Remove hint ${i + 1}`}
-                  onClick={() => update({ hints: lab.hints.filter((_, j) => j !== i) })}
+                  className="button secondary full"
+                  disabled={lab.hints.length >= 3}
+                  onClick={() => update({ hints: [...lab.hints, ''] })}
                 >
-                  <Trash2 size={15} />
+                  <Plus size={15} />
+                  Add a hint
                 </button>
               </div>
-            ))}
-            <button
-              className="button secondary full"
-              disabled={lab.hints.length >= 3}
-              onClick={() => update({ hints: [...lab.hints, ''] })}
-            >
-              <Plus size={15} />
-              Add a hint
-            </button>
-            <button className="button primary full panel-next" onClick={() => showTab('fault')}>
-              Next: choose a fault
-              <ChevronRight size={16} />
-            </button>
+            </details>
           </>
         )}
         {tab === 'fault' && (
@@ -226,7 +244,14 @@ export default function Inspector({
                 </div>
                 <span className="overline">{wireInfo[selected].tag}</span>
                 <h3>{wireInfo[selected].name}</h3>
-                <p>{wireInfo[selected].description}</p>
+                <details className="disclosure compact-disclosure">
+                  <summary>
+                    <span>About this conductor</span>
+                  </summary>
+                  <div className="disclosure-body">
+                    <p>{wireInfo[selected].description}</p>
+                  </div>
+                </details>
                 {lab.fault === selected ? (
                   <div className="fault-state">
                     <span />
@@ -270,21 +295,21 @@ export default function Inspector({
                 <p className="empty-note">No fault placed. Select a conductor above to add one.</p>
               )}
             </div>
-            <div className="expected-behavior">
-              <span className="overline">EXPECTED RESPONSE</span>
-              <p>
-                START held: K1 {held.coilOn ? 'energizes' : 'stays off'}.<br />
-                START released: K1 {released.coilOn ? 'stays energized' : 'is off'}.
-              </p>
-              <button className="text-button small" onClick={() => showTab('details')}>
-                Check that your brief matches
-                <ArrowUpRight size={13} />
-              </button>
-            </div>
-            <button className="button primary full panel-next" onClick={() => showTab('review')}>
-              Next: review lab
-              <ChevronRight size={16} />
-            </button>
+            <details className="disclosure">
+              <summary>
+                <span>Expected circuit response</span>
+              </summary>
+              <div className="disclosure-body expected-behavior">
+                <p>
+                  START held: K1 {held.coilOn ? 'energizes' : 'stays off'}.<br />
+                  START released: K1 {released.coilOn ? 'stays energized' : 'is off'}.
+                </p>
+                <button className="text-button small" onClick={() => showTab('details')}>
+                  Check that your brief matches
+                  <ArrowUpRight size={13} />
+                </button>
+              </div>
+            </details>
           </>
         )}
         {tab === 'review' && (
@@ -300,44 +325,78 @@ export default function Inspector({
                   : `${checks.length - completed} ${checks.length - completed === 1 ? 'check needs' : 'checks need'} your attention.`}
               </p>
             </div>
-            <div className="checklist">
-              {checks.map((c) => (
-                <button
-                  key={c.id}
-                  className={`check-item ${c.pass ? 'passed' : ''}`}
-                  onClick={() => {
-                    showTab(c.id === 'fault' ? 'fault' : 'details');
-                    if (c.id === 'title') setTimeout(() => titleRef.current?.focus(), 0);
-                  }}
-                >
-                  {c.pass ? <Check size={17} /> : <Circle size={17} />}
-                  <div>
-                    <strong>{c.label}</strong>
-                    {!c.pass && <p>{c.detail}</p>}
-                  </div>
-                  <ChevronRight size={14} />
-                </button>
-              ))}
-            </div>
-            <button id="preview-review" className="button secondary full" onClick={previewLab}>
-              <Play size={15} />
-              Apprentice preview
-            </button>
-            <button className="button primary full export-panel-button" onClick={exportLab}>
-              <ArrowDownToLine size={16} />
-              Export lab file
-            </button>
-            <div className="tip-card neutral">
-              <Info size={18} />
-              <p>
-                The file includes the instructor’s answer, hints, and layout. Share it with
-                instructors; this is not a secure learner assignment.
-              </p>
-            </div>
+            <details className="disclosure" open={!ready}>
+              <summary>
+                <span>Readiness checks</span>
+                <small>
+                  {completed} of {checks.length} complete
+                </small>
+              </summary>
+              <div className="disclosure-body checklist">
+                {checks.map((c) => (
+                  <button
+                    key={c.id}
+                    className={`check-item ${c.pass ? 'passed' : ''}`}
+                    onClick={() => {
+                      showTab(c.id === 'fault' ? 'fault' : 'details');
+                      if (c.id !== 'fault')
+                        requestAnimationFrame(() => {
+                          const section = document.getElementById(
+                            c.id === 'title'
+                              ? 'details-basic'
+                              : c.id === 'hints'
+                                ? 'details-hints'
+                                : 'details-brief',
+                          ) as HTMLDetailsElement | null;
+                          if (section) section.open = true;
+                          const field =
+                            c.id === 'title'
+                              ? titleRef.current
+                              : c.id === 'hints'
+                                ? document.getElementById(
+                                    `field-hint-${Math.max(
+                                      0,
+                                      lab.hints.findIndex((h) => !h.trim()),
+                                    )}`,
+                                  )
+                                : document.getElementById(`field-${c.id}`);
+                          field?.focus();
+                        });
+                    }}
+                  >
+                    {c.pass ? <Check size={17} /> : <Circle size={17} />}
+                    <div>
+                      <strong>{c.label}</strong>
+                      {!c.pass && <p>{c.detail}</p>}
+                    </div>
+                    <ChevronRight size={14} />
+                  </button>
+                ))}
+              </div>
+            </details>
           </>
         )}
       </div>
       <div className="inspector-footer">
+        {tab === 'details' ? (
+          <button className="button primary full" onClick={() => showTab('fault')}>
+            Next: choose a fault <ChevronRight size={16} />
+          </button>
+        ) : tab === 'fault' ? (
+          <button className="button primary full" onClick={() => showTab('review')}>
+            Next: review lab <ChevronRight size={16} />
+          </button>
+        ) : (
+          <>
+            <button id="preview-review" className="button primary full" onClick={previewLab}>
+              <Play size={15} /> Apprentice preview
+            </button>
+            <button className="button secondary full" onClick={exportLab}>
+              <ArrowDownToLine size={16} /> Export lab file
+            </button>
+            <p className="field-help">The file includes the answer. Share it with instructors.</p>
+          </>
+        )}
         <button className="text-button" onClick={onLoadSample}>
           <RefreshCw size={14} />
           Load sample exercise

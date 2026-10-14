@@ -6,7 +6,9 @@ import { exampleLab } from '../src/domain';
 test('author, preview the fault, export, import and undo a complete lab', async ({ page }) => {
   await page.goto('/#editor');
   await page.getByRole('tab', { name: 'Lab details' }).click();
+  await page.locator('#details-basic > summary').click();
   await page.getByLabel('Exercise title').fill('Pump holding circuit');
+  await page.locator('#details-brief > summary').click();
   await page.getByLabel('Learning objective').fill('Explain the holding circuit.');
   await page.getByRole('tab', { name: 'Fault setup' }).click();
   await expect(page.getByText('Saved on this device')).toBeVisible();
@@ -58,6 +60,7 @@ test('draft reload, invalid import, preflight failure and recovery preserve user
 }) => {
   await page.goto('/#editor');
   await page.getByRole('tab', { name: 'Lab details' }).click();
+  await page.locator('#details-basic > summary').click();
   await page.getByLabel('Exercise title').fill('Persisted draft');
   await expect(page.getByText('Saved on this device')).toBeVisible();
   await page.reload();
@@ -134,10 +137,12 @@ test('another tab cannot silently replace the current draft', async ({ context, 
   await other.goto('/#editor');
   await expect(other.getByText('Saved on this device')).toBeVisible();
   await page.getByRole('tab', { name: 'Lab details' }).click();
+  await page.locator('#details-basic > summary').click();
   await page.getByLabel('Exercise title').fill('First tab update');
   await expect(page.getByText('Saved on this device')).toBeVisible();
   await expect(other.getByRole('alert')).toContainText('Another tab changed');
   await other.getByRole('tab', { name: 'Lab details' }).click();
+  await other.locator('#details-basic > summary').click();
   await other.getByLabel('Exercise title').fill('Second tab edit');
   await other.getByLabel('Exercise title').blur();
   await other.getByRole('button', { name: 'Load saved draft' }).click();
@@ -161,6 +166,7 @@ test('delayed import cannot overwrite edits made while the file is being read', 
     mimeType: 'application/json',
     buffer: Buffer.from(JSON.stringify(exampleLab())),
   });
+  await page.locator('#details-basic > summary').click();
   await page.getByLabel('Exercise title').fill('Newer edit');
   await expect(page.getByRole('alert')).toContainText(
     'draft changed while the file was being read',
@@ -199,6 +205,7 @@ test('small-screen authoring and apprentice preview fit the viewport', async ({ 
   await page.goto('/#editor');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.getByRole('tab', { name: 'Lab details' }).click();
+  await page.locator('#details-basic > summary').click();
   await page.getByLabel('Exercise title').fill('Mobile authored exercise');
   await page.getByRole('button', { name: 'Apprentice preview', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Mobile authored exercise' })).toBeVisible();

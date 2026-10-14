@@ -15,6 +15,7 @@ import type { Lab } from './domain';
 import { expectedSymptom } from './scenario';
 import type { Proposal } from './scenario';
 import Walkthrough from './Walkthrough';
+import { revealAboveFooter } from './focus';
 
 type Props = {
   lab: Lab;
@@ -152,6 +153,9 @@ export default function StartPage({
           <section
             className={`flow-card ${page === 'review' ? 'review-flow' : ''}`}
             aria-labelledby="flow-title"
+            onFocusCapture={(event) => {
+              if (page === 'review') revealAboveFooter(event, '.flow-review-actions');
+            }}
           >
             <div className="flow-topline">
               <button
@@ -377,11 +381,15 @@ export default function StartPage({
                   {proposal.lab.title}
                 </h1>
                 <p className="flow-intro">{proposal.lab.objective}</p>
-                <dl className="proposal-facts">
-                  <div>
-                    <dt>Apprentice brief</dt>
-                    <dd>{proposal.lab.briefing}</dd>
+                <details className="disclosure proposal-brief">
+                  <summary>
+                    <span>Apprentice brief</span>
+                  </summary>
+                  <div className="disclosure-body">
+                    <p>{proposal.lab.briefing}</p>
                   </div>
+                </details>
+                <dl className="proposal-facts">
                   <div className="answer-fact">
                     <dt>Instructor answer</dt>
                     <dd>
@@ -396,9 +404,12 @@ export default function StartPage({
                   </div>
                 </dl>
                 {proposal.lab.hints.length > 0 && (
-                  <details className="proposal-hints">
-                    <summary>{proposal.lab.hints.length} progressive hints</summary>
-                    <ol>
+                  <details className="proposal-hints disclosure">
+                    <summary>
+                      <span>Hints</span>
+                      <small>{proposal.lab.hints.length} included</small>
+                    </summary>
+                    <ol className="disclosure-body">
                       {proposal.lab.hints.map((hint, i) => (
                         <li key={i}>{hint}</li>
                       ))}

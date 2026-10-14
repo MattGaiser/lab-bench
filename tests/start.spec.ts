@@ -17,6 +17,7 @@ test('one-card entry, sample and resume work without AI', async ({ page }) => {
   expect(await page.evaluate(() => localStorage.getItem('lab-bench:draft:v1'))).toBeNull();
   await page.getByRole('button', { name: 'Skip intro' }).click();
   await page.getByRole('button', { name: 'Open sample editor' }).click();
+  await page.locator('#details-basic > summary').click();
   await page.getByLabel('Exercise title').fill('My current draft');
   await page.getByRole('button', { name: 'Home', exact: true }).click();
   await expect
@@ -217,8 +218,8 @@ test('mobile editor and preview put their first action in the initial viewport',
   await page.goto('/');
   await page.getByRole('button', { name: 'Skip intro' }).click();
   await page.getByRole('button', { name: 'Open sample editor' }).click();
-  const title = await page.getByLabel('Exercise title').boundingBox();
-  expect(title!.y + title!.height).toBeLessThan(844);
+  const next = await page.getByRole('button', { name: 'Next: choose a fault' }).boundingBox();
+  expect(next!.y + next!.height).toBeLessThan(844);
   await page.getByRole('button', { name: 'Next: choose a fault' }).click();
   await expect(page.getByRole('tab', { name: 'Fault setup' })).toBeFocused();
   await page.getByRole('button', { name: 'W1 Supply conductor', exact: true }).focus();

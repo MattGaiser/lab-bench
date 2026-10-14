@@ -751,7 +751,7 @@ h1 {
   background: var(--paper);
   border-radius: var(--radius);
   box-shadow: 0 3px 6px #243b2908;
-  overflow: hidden;
+  overflow: clip;
 }
 .inspector-title {
   display: flex;
@@ -2635,9 +2635,6 @@ h1 {
   grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
   gap: 22px 36px;
 }
-.proposal-facts > div:first-child {
-  grid-row: span 2;
-}
 .proposal-facts dt {
   font-size: 12px;
 }
@@ -2695,11 +2692,174 @@ h1 {
     grid-template-columns: minmax(0, 1fr);
     font-size: 14px;
   }
-  .proposal-facts > div:first-child {
-    grid-row: auto;
-  }
 }
 .guide-footnote {
   gap: 24px;
   flex-wrap: wrap;
+}
+/* Collapsible detail keeps the next action close to the current decision. */
+.disclosure {
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--paper);
+  margin-bottom: 10px;
+  min-width: 0;
+}
+.disclosure > summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px;
+  cursor: pointer;
+  list-style: none;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+.disclosure > summary::-webkit-details-marker {
+  display: none;
+}
+.disclosure > summary::after {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg);
+  margin-left: auto;
+  flex-shrink: 0;
+}
+.disclosure[open] > summary::after {
+  transform: rotate(225deg);
+}
+.disclosure > summary small {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 500;
+  margin-left: auto;
+}
+.disclosure > summary small + * {
+  margin-left: 0;
+}
+.disclosure > summary:focus-visible {
+  outline: 3px solid #3b8273;
+  outline-offset: -3px;
+  border-radius: 8px;
+}
+.disclosure[open] > summary {
+  border-bottom: 1px solid var(--line);
+}
+.disclosure-body {
+  padding: 16px;
+  font-size: 12px;
+  line-height: 1.75;
+  overflow-wrap: anywhere;
+}
+.disclosure-body > :last-child {
+  margin-bottom: 0;
+}
+.disclosure-body .field {
+  margin-bottom: 16px;
+}
+.inspector-content {
+  padding: 16px;
+}
+.inspector-content > .disclosure:last-child {
+  margin-bottom: 0;
+}
+.inspector-footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  background: var(--paper);
+  box-shadow: 0 -6px 16px #233c3406;
+}
+.inspector-footer > .text-button {
+  justify-self: center;
+}
+.inspector-footer .field-help {
+  margin: 0;
+}
+.compact-disclosure {
+  background: transparent;
+  margin: 14px 0;
+  border-color: #d8cfb8;
+}
+.compact-disclosure > summary {
+  padding: 10px;
+  font-size: 11px;
+}
+.compact-disclosure .disclosure-body {
+  padding: 12px;
+}
+.disclosure-body.expected-behavior {
+  margin: 0;
+  border: 0;
+  background: none;
+}
+.disclosure .checklist {
+  margin: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+.disclosure .check-item:last-child {
+  border: 0;
+}
+.readiness-card {
+  padding: 16px;
+  margin-bottom: 12px;
+}
+.readiness-icon {
+  width: 36px;
+  height: 36px;
+  margin-bottom: 8px;
+}
+.readiness-card h3 {
+  font-size: 16px;
+}
+.preview-brief.disclosure,
+.observations.disclosure {
+  padding: 0;
+}
+.preview-brief.disclosure {
+  margin-bottom: 16px;
+}
+.preview-brief .disclosure-body {
+  padding: 18px 22px;
+}
+.observations .text-button {
+  margin-top: 14px;
+  font-size: 12px;
+}
+.proposal-brief .disclosure-body {
+  font-size: 14px;
+}
+.proposal-hints .disclosure-body {
+  margin: 0;
+  padding-left: 36px;
+}
+.review-flow {
+  overflow: clip;
+}
+.flow-review-actions {
+  position: sticky;
+  bottom: 0;
+  background: var(--paper);
+  padding-bottom: 16px;
+  z-index: 1;
+}
+@media (max-width: 600px) {
+  .disclosure > summary {
+    padding: 14px;
+    font-size: 12px;
+  }
+  .inspector-tabs button {
+    padding: 13px 8px;
+  }
+  .inspector-title {
+    padding: 16px;
+  }
 }

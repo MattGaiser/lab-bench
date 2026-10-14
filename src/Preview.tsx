@@ -103,31 +103,35 @@ export default function Preview({ lab, onClose }: { lab: Lab; onClose: () => voi
       </div>
       <div className="preview-layout">
         <div className="preview-main">
-          <section className="side-card preview-brief" aria-label="Read the scenario">
-            <h2 className="overline">01 / READ THE SCENARIO</h2>
-            <p className="briefing-copy">{lab.briefing}</p>
-            {lab.hints.length > 0 && (
-              <div className="hints-box">
-                {lab.hints.slice(0, hints).map((hint, i) => (
-                  <p key={i}>
+          <details className="side-card preview-brief disclosure" open>
+            <summary>
+              <span>Read the scenario</span>
+            </summary>
+            <div className="disclosure-body">
+              <p className="briefing-copy">{lab.briefing}</p>
+              {lab.hints.length > 0 && (
+                <div className="hints-box">
+                  {lab.hints.slice(0, hints).map((hint, i) => (
+                    <p key={i}>
+                      <Lightbulb size={15} />
+                      <span>{hint}</span>
+                    </p>
+                  ))}
+                  <button
+                    className="text-button"
+                    disabled={hints >= lab.hints.length}
+                    onClick={() => setHints((n) => n + 1)}
+                  >
                     <Lightbulb size={15} />
-                    <span>{hint}</span>
-                  </p>
-                ))}
-                <button
-                  className="text-button"
-                  disabled={hints >= lab.hints.length}
-                  onClick={() => setHints((n) => n + 1)}
-                >
-                  <Lightbulb size={15} />
-                  {hints >= lab.hints.length
-                    ? 'All hints revealed'
-                    : `Reveal hint ${hints + 1} of ${lab.hints.length}`}
-                  <ChevronRight size={14} />
-                </button>
-              </div>
-            )}
-          </section>
+                    {hints >= lab.hints.length
+                      ? 'All hints revealed'
+                      : `Reveal hint ${hints + 1} of ${lab.hints.length}`}
+                    <ChevronRight size={14} />
+                  </button>
+                </div>
+              )}
+            </div>
+          </details>
           <div className="control-station">
             <div className="station-title">
               <span className="overline">02 / OBSERVE</span>
@@ -289,27 +293,30 @@ export default function Preview({ lab, onClose }: { lab: Lab; onClose: () => voi
               </div>
             )}
           </section>
-          <section className="side-card observations">
-            <div className="section-line">
-              <span className="overline">OBSERVATIONS</span>
+          <details className="side-card observations disclosure">
+            <summary>
+              <span>Observation log</span>
+              <small>{observations.length} events</small>
+            </summary>
+            <div className="disclosure-body">
+              {observations.length ? (
+                <ol>
+                  {observations.map((o, i) => (
+                    <li key={`${o}-${i}`}>{o}</li>
+                  ))}
+                </ol>
+              ) : (
+                <p>Use the control station to see what the circuit does.</p>
+              )}
               <button
-                className="icon-button"
+                className="text-button"
                 aria-label="Clear observations"
                 onClick={() => setObservations([])}
               >
-                <RotateCcw size={14} />
+                <RotateCcw size={14} /> Clear observations
               </button>
             </div>
-            {observations.length ? (
-              <ol>
-                {observations.map((o, i) => (
-                  <li key={`${o}-${i}`}>{o}</li>
-                ))}
-              </ol>
-            ) : (
-              <p>Use the control station to see what the circuit does.</p>
-            )}
-          </section>
+          </details>
         </aside>
       </div>
     </main>
