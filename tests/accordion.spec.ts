@@ -41,8 +41,11 @@ for (const width of [1440, 390]) {
       'Trace the holding path.',
     );
     expect(
-      (await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze())
-        .violations,
+      (
+        await new AxeBuilder({ page })
+          .withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'])
+          .analyze()
+      ).violations,
     ).toEqual([]);
   });
 }

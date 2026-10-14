@@ -64,6 +64,7 @@ export default function App() {
   const currentLab = useRef(lab);
   currentLab.current = lab;
   const lastRaw = useRef(initial.raw);
+  const [savedLab, setSavedLab] = useState(initial.lab);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>(
     initial.status === 'new' ? 'saving' : initial.status,
   );
@@ -73,11 +74,20 @@ export default function App() {
   const [preview, setPreview] = useState<Lab | null>(null);
   const [message, setMessage] = useState<{ text: string; error?: boolean } | null>(null);
   const aboutRef = useRef<HTMLDialogElement>(null);
+  const aboutTrigger = useRef<HTMLButtonElement | null>(null);
+  const editorHeading = useRef<HTMLHeadingElement>(null);
   const importRef = useRef<HTMLInputElement>(null);
   const previewTrigger = useRef<string | null>(null);
   const checks = checkLab(lab);
   const ready = checks.every((c) => c.pass);
   const completed = checks.filter((c) => c.pass).length;
+  const visibleSaveStatus = saveStatus === 'saved' && lab !== savedLab ? 'saving' : saveStatus;
+  const unloadState = useRef({ status: visibleSaveStatus, hasOpened });
+  unloadState.current = { status: visibleSaveStatus, hasOpened };
+
+  useEffect(() => {
+    if (screen === 'editor') editorHeading.current?.focus({ preventScroll: true });
+  }, [screen]);
 
   useEffect(() => {
     if (!preview && previewTrigger.current) {
@@ -97,6 +107,7 @@ export default function App() {
         const result = saveDraft(storage, lab, lastRaw.current);
         if (result.ok) {
           lastRaw.current = result.raw;
+          setSavedLab(lab);
           setSaveStatus('saved');
         } else setSaveStatus(result.reason);
       };
@@ -147,14 +158,14 @@ export default function App() {
   }, [message]);
   useEffect(() => {
     const warn = (event: BeforeUnloadEvent) => {
-      if (saveStatus !== 'saved' && hasOpened) {
+      if (unloadState.current.status !== 'saved' && unloadState.current.hasOpened) {
         event.preventDefault();
         event.returnValue = '';
       }
     };
     window.addEventListener('beforeunload', warn);
     return () => window.removeEventListener('beforeunload', warn);
-  }, [saveStatus, hasOpened]);
+  }, []);
 
   const openEditor = () => {
     setScreen('editor');
@@ -227,6 +238,7 @@ export default function App() {
     if (saved.status === 'saved') {
       lastRaw.current = saved.raw;
       dispatch({ type: 'replace', lab: saved.lab });
+      setSavedLab(saved.lab);
       setSaveStatus('saved');
       retrySave();
       setMessage({ text: 'Loaded the draft saved on this device.' });
@@ -299,7 +311,10 @@ export default function App() {
           <button
             className="icon-button"
             aria-label="About Lab Bench"
-            onClick={() => aboutRef.current?.showModal()}
+            onClick={(event) => {
+              aboutTrigger.current = event.currentTarget;
+              aboutRef.current?.showModal();
+            }}
           >
             <CircleHelp size={19} />
           </button>
@@ -365,7 +380,9 @@ export default function App() {
                 <div className="heading-eyebrow">
                   <span className="draft-pill">Draft exercise</span>
                 </div>
-                <h1>{lab.title.trim() || 'Untitled exercise'}</h1>
+                <h1 ref={editorHeading} tabIndex={-1}>
+                  {lab.title.trim() || 'Untitled exercise'}
+                </h1>
               </div>
               <div className="heading-actions">
                 <button id="preview-main" className="button primary" onClick={previewLab}>
@@ -398,13 +415,13 @@ export default function App() {
               </div>
               <div className="meta-right">
                 <span
-                  className={`save-state ${saveStatus === 'saved' ? '' : 'attention'}`}
+                  className={`save-state ${visibleSaveStatus === 'saved' ? '' : 'attention'}`}
                   role="status"
                 >
                   <i />
-                  {saveStatus === 'saved'
+                  {visibleSaveStatus === 'saved'
                     ? 'Saved on this device'
-                    : saveStatus === 'saving'
+                    : visibleSaveStatus === 'saving'
                       ? 'Saving draft…'
                       : 'Draft needs attention'}
                 </span>
@@ -507,7 +524,13 @@ export default function App() {
             </div>
             <footer className="page-footer">
               <span>Export a lab file to reuse this exercise on another device.</span>
-              <button className="text-button small" onClick={() => aboutRef.current?.showModal()}>
+              <button
+                className="text-button small"
+                onClick={(event) => {
+                  aboutTrigger.current = event.currentTarget;
+                  aboutRef.current?.showModal();
+                }}
+              >
                 About this work sample
                 <ArrowUpRight size={13} />
               </button>
@@ -543,7 +566,12 @@ export default function App() {
           </button>
         </div>
       )}
-      <dialog ref={aboutRef} className="about-dialog" aria-labelledby="about-title">
+      <dialog
+        ref={aboutRef}
+        className="about-dialog"
+        aria-labelledby="about-title"
+        onClose={() => aboutTrigger.current?.focus()}
+      >
         <div className="dialog-heading">
           <span className="overline">ABOUT LAB BENCH</span>
           <button

@@ -187,8 +187,11 @@ test('every card fits a phone and passes accessibility checks', async ({ page })
       true,
     );
     expect(
-      (await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze())
-        .violations,
+      (
+        await new AxeBuilder({ page })
+          .withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'])
+          .analyze()
+      ).violations,
     ).toEqual([]);
   };
   for (let i = 0; i < 5; i++) {

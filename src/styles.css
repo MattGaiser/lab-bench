@@ -20,7 +20,7 @@
 }
 body {
   margin: 0;
-  min-width: 360px;
+  min-width: 0;
 }
 button,
 input,
@@ -85,10 +85,11 @@ button {
     transform 0.15s;
 }
 .app-header {
-  height: 74px;
+  min-height: 74px;
   padding: 0 40px;
   border-bottom: 1px solid var(--line);
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 24px;
   background: #fbfbf6;
@@ -231,8 +232,9 @@ h1 {
 }
 .heading-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
-  flex-shrink: 0;
+  min-width: 0;
 }
 .button {
   display: inline-flex;
@@ -247,7 +249,7 @@ h1 {
   border: 1px solid transparent;
   min-height: 40px;
   text-decoration: none;
-  white-space: nowrap;
+  white-space: normal;
 }
 .button.primary {
   background: var(--green);
@@ -306,7 +308,7 @@ h1 {
 }
 .icon-button.active {
   background: #e8eedf;
-  border-color: #d6dfcc;
+  border-color: #7c8975;
   color: #214d3b;
 }
 .workbench-meta {
@@ -406,6 +408,34 @@ h1 {
   align-items: center;
   padding: 8px 20px;
   border-block: 1px solid #e4e8df;
+}
+.canvas-movement {
+  padding: 12px 20px;
+  border-top: 1px solid var(--line);
+  font-size: 12px;
+}
+.canvas-movement p {
+  color: var(--muted);
+}
+.movement-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 14px;
+  margin-top: 12px;
+}
+.movement-controls .field {
+  flex: 1 1 160px;
+  margin: 0;
+}
+.movement-arrows {
+  display: flex;
+  gap: 6px;
+}
+.movement-arrows .icon-button {
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--line);
 }
 .tool-group {
   display: flex;
@@ -539,8 +569,9 @@ h1 {
 .wire:focus-visible {
   outline: none;
 }
-.wire:focus-visible .wire-halo {
-  stroke: #65a48c;
+.wire:focus-visible .wire-halo,
+.wire.faulted.selected:focus-visible .wire-halo {
+  stroke: #3b8273;
   stroke-width: 12;
 }
 .wire-tag-bg {
@@ -581,7 +612,7 @@ h1 {
   stroke: #31795e;
   stroke-width: 3;
 }
-.component:hover .component-box {
+.component:hover:not(:focus-visible) .component-box {
   stroke: #8ea784;
 }
 .component-name {
@@ -838,7 +869,7 @@ h1 {
 .field textarea,
 .field select {
   width: 100%;
-  border: 1px solid #d6ded0;
+  border: 1px solid #7c8975;
   border-radius: 6px;
   background: #fffefa;
   color: #304633;
@@ -1658,12 +1689,9 @@ h1 {
   }
 }
 @media (max-width: 600px) {
-  body {
-    min-width: 360px;
-  }
   .app-header {
-    height: 64px;
-    padding: 0 18px;
+    min-height: 64px;
+    padding: 12px 18px;
     gap: 16px;
   }
   .brand {
@@ -1752,6 +1780,8 @@ h1 {
   }
   .canvas-toolbar {
     padding: 7px 10px;
+    flex-wrap: wrap;
+    gap: 8px;
   }
   .tool-group {
     gap: 2px;
@@ -2846,10 +2876,15 @@ h1 {
 }
 .flow-review-actions {
   position: sticky;
+  flex-wrap: wrap;
   bottom: 0;
   background: var(--paper);
   padding-bottom: 16px;
   z-index: 1;
+}
+.flow-review-actions .button {
+  flex: 1 1 160px;
+  min-width: 0;
 }
 @media (max-width: 600px) {
   .disclosure > summary {

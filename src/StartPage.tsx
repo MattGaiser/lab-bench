@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef, useState } from 'react';
+﻿import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
   ArrowLeft,
   ArrowRight,
@@ -55,7 +55,7 @@ export default function StartPage({
     setPage('guide');
     setStep(0);
   }, [guideRequest]);
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!active || page !== 'compose') {
       request.current?.abort();
       request.current = null;

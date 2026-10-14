@@ -1,5 +1,18 @@
 import { useRef, useState } from 'react';
-import { Expand, Minus, Plus, RotateCcw, Undo2, Redo2, MousePointer2, Hand } from 'lucide-react';
+import {
+  Expand,
+  Minus,
+  Plus,
+  RotateCcw,
+  Undo2,
+  Redo2,
+  MousePointer2,
+  Hand,
+  ArrowLeft,
+  ArrowRight,
+  ArrowUp,
+  ArrowDown,
+} from 'lucide-react';
 import { COMPONENTS, WIRES, componentInfo, wireInfo, constrain } from './domain';
 import type { ComponentId, Lab, Point, WireId, CircuitState } from './domain';
 
@@ -28,9 +41,12 @@ export default function CircuitCanvas({
   canRedo,
 }: Props) {
   const svgRef = useRef<SVGSVGElement>(null);
+  const movementRef = useRef<HTMLDetailsElement>(null);
+  const moveSelectRef = useRef<HTMLSelectElement>(null);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState<Point>({ x: 0, y: 0 });
   const [hand, setHand] = useState(false);
+  const [moveTarget, setMoveTarget] = useState<'view' | ComponentId>('view');
   const [drag, setDrag] = useState<{ id: ComponentId; point: Point } | null>(null);
   const moving = useRef<{ id: ComponentId; offset: Point; point: Point } | null>(null);
   const panning = useRef<{ point: Point; pan: Point } | null>(null);
@@ -65,6 +81,7 @@ export default function CircuitCanvas({
   };
   const finishDrag = (commit: boolean) => {
     if (moving.current && commit) onMove?.(moving.current.id, moving.current.point);
+    if (panning.current && !commit) setPan(panning.current.pan);
     moving.current = null;
     panning.current = null;
     setDrag(null);
@@ -72,6 +89,17 @@ export default function CircuitCanvas({
   const resetView = () => {
     setZoom(1);
     setPan({ x: 0, y: 0 });
+  };
+  const movement = (x: number, y: number) => {
+    const current = moveTarget === 'view' ? pan : lab.positions[moveTarget];
+    const next =
+      moveTarget === 'view'
+        ? {
+            x: Math.max(-300, Math.min(300, current.x + x * 30)),
+            y: Math.max(-180, Math.min(180, current.y + y * 30)),
+          }
+        : constrain(moveTarget, { x: current.x + x * 10, y: current.y + y * 10 });
+    return { next, atLimit: current.x === next.x && current.y === next.y };
   };
   return (
     <section
@@ -170,6 +198,9 @@ export default function CircuitCanvas({
           tabIndex={0}
           role="region"
           aria-label="Circuit diagram. On small screens, scroll horizontally to see the full circuit."
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') finishDrag(false);
+          }}
         >
           <svg
             ref={svgRef}
@@ -177,6 +208,33 @@ export default function CircuitCanvas({
             className="circuit-svg"
             role="group"
             aria-label="Start-stop control circuit. Five selectable conductors and four components."
+            onFocusCapture={(e) => {
+              if (moving.current || panning.current) return;
+              const target = e.target as SVGElement;
+              if (!target.matches('[data-component], [data-wire]')) return;
+              const item = target.getBoundingClientRect();
+              const viewport = e.currentTarget.getBoundingClientRect();
+              if (
+                item.left < viewport.left ||
+                item.right > viewport.right ||
+                item.top < viewport.top ||
+                item.bottom > viewport.bottom
+              )
+                resetView();
+              requestAnimationFrame(() => {
+                if (document.activeElement !== target) return;
+                target.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+                // Firefox does not horizontally reveal SVG path groups with scrollIntoView.
+                const scroller = target.closest('.diagram-viewport')!;
+                const bounds = target.getBoundingClientRect();
+                const visible = scroller.getBoundingClientRect();
+                if (bounds.left < visible.left || bounds.right > visible.right)
+                  scroller.scrollLeft +=
+                    (bounds.left + bounds.right - visible.left - visible.right) / 2;
+                if (bounds.top < 8 || bounds.bottom > window.innerHeight - 8)
+                  window.scrollBy(0, (bounds.top + bounds.bottom - window.innerHeight) / 2);
+              });
+            }}
             onPointerDown={(e) => {
               if (!hand || (e.target as Element).closest('[data-component], [data-wire]')) return;
               panning.current = { point: toSvg(e.clientX, e.clientY), pan };
@@ -207,9 +265,7 @@ export default function CircuitCanvas({
             }}
             onPointerUp={() => finishDrag(true)}
             onPointerCancel={() => finishDrag(false)}
-            onKeyDown={(e) => {
-              if (e.key === 'Escape') finishDrag(false);
-            }}
+            onLostPointerCapture={() => finishDrag(false)}
           >
             <g
               transform={`translate(${460 + pan.x} ${260 + pan.y}) scale(${zoom}) translate(-460 -260)`}
@@ -296,7 +352,7 @@ export default function CircuitCanvas({
                     className={`component ${!preview ? 'movable' : ''} ${id === 'coil' && state?.coilOn ? 'energized' : ''}`}
                     tabIndex={preview ? undefined : 0}
                     role={preview ? undefined : 'button'}
-                    aria-label={`${componentInfo[id].label}${!preview ? '. Drag or use arrow keys to move within its layout area.' : ''}`}
+                    aria-label={`${componentInfo[id].label}${!preview ? '. Arrow keys move; Enter opens movement controls. Drag to reposition.' : ''}`}
                     onPointerDown={(e) => {
                       if (preview || hand || e.button !== 0) return;
                       e.preventDefault();
@@ -312,6 +368,13 @@ export default function CircuitCanvas({
                       e.currentTarget.focus();
                     }}
                     onKeyDown={(e) => {
+                      if (!preview && (e.key === 'Enter' || e.key === ' ')) {
+                        e.preventDefault();
+                        setMoveTarget(id);
+                        if (movementRef.current) movementRef.current.open = true;
+                        requestAnimationFrame(() => moveSelectRef.current?.focus());
+                        return;
+                      }
                       if (
                         preview ||
                         !['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)
@@ -378,13 +441,74 @@ export default function CircuitCanvas({
           <span>
             {preview
               ? 'Select a conductor to inspect or identify it.'
-              : 'Select a conductor to set the fault. Drag components to adjust the layout.'}
+              : 'Select a conductor to set the fault. Move components by dragging or with the controls below.'}
           </span>
           <button className="text-button small" onClick={resetView}>
             <RotateCcw size={13} /> Reset view
           </button>
         </div>
       </div>
+      <details ref={movementRef} className="canvas-movement disclosure">
+        <summary>
+          <span>{preview ? 'Pan controls' : 'Move and pan controls'}</span>
+        </summary>
+        <div className="disclosure-body">
+          <p>
+            {preview
+              ? 'Move the view using the arrow buttons.'
+              : 'Choose the view or a component, then use the arrow buttons to move it. Component movement changes the layout only.'}
+          </p>
+          <div className="movement-controls">
+            {!preview && (
+              <label className="field">
+                <span>Move</span>
+                <select
+                  ref={moveSelectRef}
+                  value={moveTarget}
+                  onChange={(e) => setMoveTarget(e.target.value as 'view' | ComponentId)}
+                >
+                  <option value="view">Circuit view</option>
+                  {COMPONENTS.map((id) => (
+                    <option key={id} value={id}>
+                      {componentInfo[id].label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+            <div
+              className="movement-arrows"
+              role="group"
+              aria-label={
+                moveTarget === 'view'
+                  ? 'Pan circuit view'
+                  : `Move ${componentInfo[moveTarget].label}`
+              }
+            >
+              {[
+                { direction: 'left', x: -1, y: 0, Icon: ArrowLeft },
+                { direction: 'up', x: 0, y: -1, Icon: ArrowUp },
+                { direction: 'down', x: 0, y: 1, Icon: ArrowDown },
+                { direction: 'right', x: 1, y: 0, Icon: ArrowRight },
+              ].map(({ direction, x, y, Icon }) => (
+                <button
+                  key={direction}
+                  className="icon-button"
+                  aria-label={`${moveTarget === 'view' ? 'Pan' : `Move ${componentInfo[moveTarget].label}`} ${direction}`}
+                  disabled={movement(x, y).atLimit}
+                  onClick={() =>
+                    moveTarget === 'view'
+                      ? setPan(movement(x, y).next)
+                      : onMove?.(moveTarget, movement(x, y).next)
+                  }
+                >
+                  <Icon size={18} />
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </details>
       <div className="canvas-legend">
         <span>
           <i className="legend-line" /> Conductor

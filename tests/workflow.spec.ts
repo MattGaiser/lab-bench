@@ -62,6 +62,7 @@ test('draft reload, invalid import, preflight failure and recovery preserve user
   await page.getByRole('tab', { name: 'Lab details' }).click();
   await page.locator('#details-basic > summary').click();
   await page.getByLabel('Exercise title').fill('Persisted draft');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Persisted draft');
   await expect(page.getByText('Saved on this device')).toBeVisible();
   await page.reload();
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Persisted draft');
@@ -181,20 +182,26 @@ test('no serious accessibility issues in authoring, preview and the about dialog
   for (const tab of ['Fault setup', 'Lab details', 'Review']) {
     await page.getByRole('tab', { name: tab }).click();
     const report = await new AxeBuilder({ page })
-      .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
+      .withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'])
       .analyze();
     expect(report.violations).toEqual([]);
   }
   await page.getByRole('button', { name: 'Apprentice preview', exact: true }).first().click();
   expect(
-    (await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze())
-      .violations,
+    (
+      await new AxeBuilder({ page })
+        .withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'])
+        .analyze()
+    ).violations,
   ).toEqual([]);
   await page.getByRole('button', { name: 'About Lab Bench' }).click();
   await expect(page.getByRole('dialog')).toBeVisible();
   expect(
-    (await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze())
-      .violations,
+    (
+      await new AxeBuilder({ page })
+        .withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'])
+        .analyze()
+    ).violations,
   ).toEqual([]);
   await page.keyboard.press('Escape');
   await expect(page.getByRole('dialog')).not.toBeVisible();

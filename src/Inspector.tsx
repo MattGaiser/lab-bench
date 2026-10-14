@@ -83,10 +83,15 @@ export default function Inspector({
             onClick={() => showTab(name)}
             onKeyDown={(e) => {
               if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+                e.preventDefault();
                 const next = (i + (e.key === 'ArrowRight' ? 1 : 2)) % 3;
                 const name = (['details', 'fault', 'review'] as Tab[])[next];
                 setTab(name);
                 document.getElementById(`tab-${name}`)?.focus();
+              }
+              if (e.key === 'Home' || e.key === 'End') {
+                e.preventDefault();
+                showTab(e.key === 'Home' ? 'details' : 'review');
               }
             }}
           >
@@ -195,16 +200,25 @@ export default function Inspector({
                     <button
                       className="icon-button"
                       aria-label={`Remove hint ${i + 1}`}
-                      onClick={() => update({ hints: lab.hints.filter((_, j) => j !== i) })}
+                      onClick={() => {
+                        update({ hints: lab.hints.filter((_, j) => j !== i) });
+                        requestAnimationFrame(() => document.getElementById('add-hint')?.focus());
+                      }}
                     >
                       <Trash2 size={15} />
                     </button>
                   </div>
                 ))}
                 <button
+                  id="add-hint"
                   className="button secondary full"
                   disabled={lab.hints.length >= 3}
-                  onClick={() => update({ hints: [...lab.hints, ''] })}
+                  onClick={() => {
+                    update({ hints: [...lab.hints, ''] });
+                    requestAnimationFrame(() =>
+                      document.getElementById(`field-hint-${lab.hints.length}`)?.focus(),
+                    );
+                  }}
                 >
                   <Plus size={15} />
                   Add a hint
