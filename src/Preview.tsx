@@ -110,7 +110,7 @@ export default function Preview({
   return (
     <main className="preview-page">
       <div className="preview-top">
-        <button className="button subtle" onClick={onClose}>
+        <button type="button" className="button subtle" onClick={onClose}>
           <ArrowLeft size={16} /> Back to authoring
         </button>
         <span className="preview-label">APPRENTICE PREVIEW</span>
@@ -146,6 +146,7 @@ export default function Preview({
                     ))}
                   </div>
                   <button
+                    type="button"
                     className="text-button"
                     disabled={hints >= lab.hints.length}
                     onClick={() => setHints((n) => n + 1)}
@@ -169,6 +170,7 @@ export default function Preview({
             </div>
             <div className="station-controls">
               <button
+                type="button"
                 className={`button power-button ${state.powered ? 'powered' : ''}`}
                 aria-pressed={state.powered}
                 onClick={() => action('power')}
@@ -178,6 +180,7 @@ export default function Preview({
               </button>
               <span className="tool-divider" />
               <button
+                type="button"
                 className={`pushbutton start ${state.startHeld ? 'held' : ''}`}
                 aria-label="Hold START"
                 aria-pressed={state.startHeld}
@@ -186,6 +189,7 @@ export default function Preview({
                 START
               </button>
               <button
+                type="button"
                 className={`pushbutton stop ${state.stopHeld ? 'held' : ''}`}
                 aria-label="Hold STOP"
                 aria-pressed={state.stopHeld}
@@ -213,7 +217,7 @@ export default function Preview({
             state={state}
           />
         </div>
-        <aside className="preview-aside" aria-label="Inspection and diagnosis" tabIndex={0}>
+        <aside className="preview-aside" aria-label="Inspection and diagnosis">
           <section className="side-card inspect-card">
             <h3>{selected ? targetDetails(selected).label : 'Choose what to inspect'}</h3>
             <label className="field">
@@ -249,6 +253,7 @@ export default function Preview({
                 : 'Choose a conductor or contact on the circuit. Isolate the supply, then inspect it.'}
             </p>
             <button
+              type="button"
               className="button secondary full"
               disabled={!selected || state.powered}
               onClick={() => {
@@ -315,6 +320,7 @@ export default function Preview({
               />
             </label>
             <button
+              type="button"
               className="button primary full"
               disabled={!selected || !explanation.trim() || (!isWire(selected) && !condition)}
               onClick={() => {
@@ -374,6 +380,7 @@ export default function Preview({
                 <p>Use the control station to see what the circuit does.</p>
               )}
               <button
+                type="button"
                 className="text-button"
                 aria-label="Clear observations"
                 disabled={observations.length === 0}

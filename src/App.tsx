@@ -3,7 +3,6 @@ import {
   ArrowDownToLine,
   ArrowUpFromLine,
   ArrowUpRight,
-  Check,
   CheckCheck,
   ChevronRight,
   CircleHelp,
@@ -71,6 +70,8 @@ export default function App() {
   const [saveStatus, setSaveStatus] = useState<SaveStatus>(
     initial.status === 'new' ? 'saving' : initial.status,
   );
+  const saveStatusRef = useRef(saveStatus);
+  saveStatusRef.current = saveStatus;
   const [saveGeneration, retrySave] = useReducer((n) => n + 1, 0);
   const saveRequested = useRef(false);
   const [selected, setSelected] = useState<WireId | null>(isWire(lab.fault) ? lab.fault : 'hold');
@@ -119,7 +120,12 @@ export default function App() {
   }, [preview]);
 
   useEffect(() => {
-    if ((screen === 'start' && !hasOpened) || saveStatus === 'damaged' || saveStatus === 'conflict')
+    void saveGeneration;
+    if (
+      (screen === 'start' && !hasOpened) ||
+      saveStatusRef.current === 'damaged' ||
+      saveStatusRef.current === 'conflict'
+    )
       return;
     let canceled = false;
     setSaveStatus('saving');
@@ -159,7 +165,7 @@ export default function App() {
       clearTimeout(timeout);
     };
     // Save status reflects the outcome; edits and explicit recovery are the triggers.
-  }, [lab, saveGeneration, screen, hasOpened]);
+  }, [lab, saveGeneration, screen, hasOpened, setMessage]);
 
   useEffect(() => {
     const onStorage = (event: StorageEvent) => {
@@ -306,11 +312,10 @@ export default function App() {
   return (
     <div className={`app-shell ${screen === 'start' ? 'guided-entry' : ''}`}>
       <header className="app-header">
-        <a
+        <button
+          type="button"
           className="brand"
-          href="#"
-          onClick={(e) => {
-            e.preventDefault();
+          onClick={() => {
             setPreview(null);
             setScreen('start');
             window.history.replaceState(null, '', window.location.pathname);
@@ -327,11 +332,12 @@ export default function App() {
             lab<span className="brand-light">bench</span>
             <span className="brand-period">.</span>
           </span>
-        </a>
+        </button>
         <div className="header-divider" />
         <span className="workspace-name">Instructor workspace</span>
         <div className="header-right">
           <button
+            type="button"
             id="show-tour"
             aria-label="Show me around"
             className="text-button tour-launch"
@@ -341,6 +347,7 @@ export default function App() {
             <span>Show me around</span>
           </button>
           <button
+            type="button"
             className="icon-button"
             aria-label="About Lab Bench"
             onClick={(event) => {
@@ -350,7 +357,7 @@ export default function App() {
           >
             <CircleHelp size={19} />
           </button>
-          <span className="avatar" aria-label="Matthew Gaiser">
+          <span className="avatar" role="img" aria-label="Matthew Gaiser">
             MG
           </span>
         </div>
@@ -396,6 +403,7 @@ export default function App() {
           <main className="author-page">
             <div className="breadcrumbs">
               <button
+                type="button"
                 className="text-button"
                 onClick={() => {
                   setScreen('start');
@@ -417,11 +425,16 @@ export default function App() {
                 <span className="draft-pill">Draft exercise</span>
               </div>
               <div className="heading-actions">
-                <button id="preview-main" className="button primary" onClick={previewLab}>
+                <button
+                  type="button"
+                  id="preview-main"
+                  className="button primary"
+                  onClick={previewLab}
+                >
                   <Play size={16} />
                   Apprentice preview
                 </button>
-                <button className="button secondary" onClick={exportLab}>
+                <button type="button" className="button secondary" onClick={exportLab}>
                   <ArrowDownToLine size={16} />
                   Export lab
                 </button>
@@ -457,7 +470,11 @@ export default function App() {
                       ? 'Saving draft…'
                       : 'Draft needs attention'}
                 </span>
-                <button className="text-button" onClick={() => importRef.current?.click()}>
+                <button
+                  type="button"
+                  className="text-button"
+                  onClick={() => importRef.current?.click()}
+                >
                   <ArrowUpFromLine size={15} />
                   Import
                 </button>
@@ -486,6 +503,7 @@ export default function App() {
                   </p>
                   <div className="recovery-actions">
                     <button
+                      type="button"
                       className="text-button"
                       onClick={() => {
                         download(serializeLab(lab), 'lab-bench-draft.json');
@@ -498,10 +516,10 @@ export default function App() {
                     </button>
                     {saveStatus === 'conflict' && (
                       <>
-                        <button className="text-button" onClick={adoptSaved}>
+                        <button type="button" className="text-button" onClick={adoptSaved}>
                           Load saved draft
                         </button>
-                        <button className="text-button" onClick={keepThisCopy}>
+                        <button type="button" className="text-button" onClick={keepThisCopy}>
                           Save this copy instead
                         </button>
                       </>
@@ -509,6 +527,7 @@ export default function App() {
                     {saveStatus === 'damaged' && (
                       <>
                         <button
+                          type="button"
                           className="text-button"
                           onClick={() => {
                             download(lastRaw.current ?? '', 'lab-bench-recovery.txt');
@@ -517,13 +536,14 @@ export default function App() {
                         >
                           Download stored data
                         </button>
-                        <button className="text-button" onClick={keepThisCopy}>
+                        <button type="button" className="text-button" onClick={keepThisCopy}>
                           Replace stored draft with this copy
                         </button>
                       </>
                     )}
                     {saveStatus === 'unavailable' && (
                       <button
+                        type="button"
                         className="text-button"
                         onClick={() => {
                           saveRequested.current = true;
@@ -572,6 +592,7 @@ export default function App() {
             </div>
             <footer className="page-footer">
               <button
+                type="button"
                 className="text-button small"
                 onClick={(event) => {
                   aboutTrigger.current = event.currentTarget;
@@ -607,6 +628,7 @@ export default function App() {
         <div className="dialog-heading">
           <span className="overline">ABOUT LAB BENCH</span>
           <button
+            type="button"
             className="icon-button"
             aria-label="Close about dialog"
             onClick={() => aboutRef.current?.close()}
@@ -641,7 +663,11 @@ export default function App() {
             </p>
           </div>
         </div>
-        <button className="button primary full" onClick={() => aboutRef.current?.close()}>
+        <button
+          type="button"
+          className="button primary full"
+          onClick={() => aboutRef.current?.close()}
+        >
           Back to the workbench
         </button>
       </dialog>

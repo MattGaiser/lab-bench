@@ -77,7 +77,7 @@ npx playwright install chromium
 npm run check
 ```
 
-`npm run check` builds the production app, runs the model/file/storage and API-boundary tests, and tests the production build in Chromium. Default checks make no paid requests; browser tests disable the key on their own server and intercept AI responses. Tests cover proposal refinement and cancellation, walkthrough navigation and draft preservation, authoring through export/import, storage recovery, another-tab conflicts, keyboard and pointer movement, responsive layout, and axe accessibility checks. Browser tests own port 4187 and use isolated contexts. Accessibility automation is not a full manual accessibility audit.
+`npm run check` runs source linting and formatting checks, builds the production app, runs the model/file/storage and API-boundary tests, and tests the production build in Chromium. Default checks make no paid requests; browser tests disable the key on their own server and intercept AI responses. Tests cover proposal refinement and cancellation, walkthrough navigation and draft preservation, authoring through export/import, storage recovery, another-tab conflicts, keyboard and pointer movement, responsive layout, and axe accessibility checks. Browser tests own port 4187 and use isolated contexts. Accessibility automation is not a full manual accessibility audit.
 
 `npm test` runs the domain and local API tests. After a build, `npm run test:e2e` runs the browser suite. **Optional paid check:** `npm run test:live` sends one bounded request using the configured key and checks the returned fault, duration, hints, and canonical lab contract. To check a contact fault, use `npm run test:live -- --fault start-stuck-closed` (also accepts `start-stuck-open` or `stop-stuck-closed`). For formatting: `npm run format:check`.
 
@@ -104,7 +104,7 @@ React and TypeScript handle the editor and preview. A small pure domain module o
 - `scripts/assistant.mjs`: bounded OpenAI requests and the local HTTP boundary.
 - `tests/workflow.spec.ts`: tests against the built application in a real browser.
 
-See [product decisions](docs/product-decisions.md) for the scope, tradeoffs, evidence, and next questions.
+See the [design system](docs/design-system.md) for interface foundations and component rules, and [product decisions](docs/product-decisions.md) for the scope, tradeoffs, evidence, and next questions.
 
 ## References
 

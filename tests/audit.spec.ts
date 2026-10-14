@@ -222,7 +222,7 @@ test('keyboard entry, tabs, hint limits and component activation retain useful f
   await expect(page.getByRole('combobox', { name: 'Move', exact: true })).toHaveValue('start');
 });
 
-test('all About exits restore focus and the brand link resumes the same draft', async ({
+test('all About exits restore focus and the brand action resumes the same draft', async ({
   page,
 }) => {
   await page.goto('/#editor');
@@ -234,7 +234,7 @@ test('all About exits restore focus and the brand link resumes the same draft', 
     await expect(page.getByRole('button', { name: 'Back to the workbench' })).toBeFocused();
     // Native dialogs may include browser chrome in the Tab cycle; background controls stay inert.
     await page
-      .getByRole('link', { name: 'Lab Bench authoring' })
+      .getByRole('button', { name: 'Lab Bench authoring' })
       .evaluate((el) => (el as HTMLElement).focus());
     await expect(page.getByRole('button', { name: 'Back to the workbench' })).toBeFocused();
     if (exit === 'Escape') await page.keyboard.press('Escape');
@@ -244,7 +244,7 @@ test('all About exits restore focus and the brand link resumes the same draft', 
   await page.getByRole('button', { name: 'About this work sample' }).click();
   await page.getByRole('button', { name: 'Close about dialog' }).click();
   await expect(page.getByRole('button', { name: 'About this work sample' })).toBeFocused();
-  await page.getByRole('link', { name: 'Lab Bench authoring' }).click();
+  await page.getByRole('button', { name: 'Lab Bench authoring' }).click();
   await page.getByRole('button', { name: 'Resume current draft' }).click();
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(exampleLab().title);
 });

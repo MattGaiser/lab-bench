@@ -146,6 +146,7 @@ export default function Walkthrough({
 }) {
   const heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
+    void step;
     if (active) {
       heading.current?.focus({ preventScroll: true });
       window.scrollTo({ top: 0 });
@@ -155,7 +156,7 @@ export default function Walkthrough({
   return (
     <>
       <section className="guide-card" aria-labelledby="guide-title">
-        <div className="guide-art" aria-label="Illustrated example">
+        <div className="guide-art">
           <Illustration step={step} />
         </div>
         <div className="guide-copy" key={step}>
@@ -166,7 +167,11 @@ export default function Walkthrough({
           <p className="guide-detail">{slide.detail}</p>
         </div>
         <nav className="guide-navigation" aria-label="Walkthrough pages">
-          <button className="text-button" onClick={step ? () => onStep(step - 1) : onFinish}>
+          <button
+            type="button"
+            className="text-button"
+            onClick={step ? () => onStep(step - 1) : onFinish}
+          >
             {step ? <ArrowLeft size={16} /> : null}
             {step ? 'Back' : 'Skip intro'}
           </button>
@@ -180,6 +185,7 @@ export default function Walkthrough({
             ))}
           </span>
           <button
+            type="button"
             className="button primary"
             onClick={step === slides.length - 1 ? onFinish : () => onStep(step + 1)}
           >
@@ -190,7 +196,7 @@ export default function Walkthrough({
       </section>
       {onResume && (
         <div className="guide-footnote">
-          <button className="text-button" onClick={onResume}>
+          <button type="button" className="text-button" onClick={onResume}>
             Resume current draft
             <ArrowRight size={14} />
           </button>

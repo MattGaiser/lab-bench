@@ -135,6 +135,7 @@ export default function CircuitCanvas({
         <div className="canvas-toolbar">
           <div className="tool-group">
             <button
+              type="button"
               className={`icon-button ${!hand ? 'active' : ''}`}
               aria-label="Select tool"
               aria-pressed={!hand}
@@ -144,6 +145,7 @@ export default function CircuitCanvas({
               <MousePointer2 size={17} />
             </button>
             <button
+              type="button"
               className={`icon-button ${hand ? 'active' : ''}`}
               aria-label="Pan tool"
               aria-pressed={hand}
@@ -156,6 +158,7 @@ export default function CircuitCanvas({
               <>
                 <span className="tool-divider" />
                 <button
+                  type="button"
                   className="icon-button"
                   aria-label="Undo"
                   title="Undo · Ctrl/⌘ Z"
@@ -165,6 +168,7 @@ export default function CircuitCanvas({
                   <Undo2 size={17} />
                 </button>
                 <button
+                  type="button"
                   className="icon-button"
                   aria-label="Redo"
                   title="Redo · Ctrl/⌘ Shift Z"
@@ -178,6 +182,7 @@ export default function CircuitCanvas({
           </div>
           <div className="tool-group">
             <button
+              type="button"
               className="icon-button"
               aria-label="Zoom out"
               disabled={zoom <= 0.8}
@@ -189,6 +194,7 @@ export default function CircuitCanvas({
               {Math.round(zoom * 100)}%
             </span>
             <button
+              type="button"
               className="icon-button"
               aria-label="Zoom in"
               disabled={zoom >= 1.8}
@@ -198,6 +204,7 @@ export default function CircuitCanvas({
             </button>
             <span className="tool-divider" />
             <button
+              type="button"
               className="icon-button"
               aria-label="Reset zoom and pan"
               title="Reset zoom and pan"
@@ -469,7 +476,7 @@ export default function CircuitCanvas({
           </svg>
         </div>
         <div className="canvas-bottom-note">
-          <button className="text-button small" onClick={resetWithFeedback}>
+          <button type="button" className="text-button small" onClick={resetWithFeedback}>
             <RotateCcw size={13} /> Reset view
           </button>
         </div>
@@ -518,6 +525,7 @@ export default function CircuitCanvas({
                 { direction: 'right', x: 1, y: 0, Icon: ArrowRight },
               ].map(({ direction, x, y, Icon }) => (
                 <button
+                  type="button"
                   key={direction}
                   className="icon-button"
                   aria-label={`${moveTarget === 'view' ? 'Pan' : `Move ${componentInfo[moveTarget].label}`} ${direction}`}

@@ -59,7 +59,12 @@ export default function Notification({
     >
       {message.error ? <TriangleAlert size={18} /> : <Check size={18} />}
       <span key={message.id}>{message.text}</span>
-      <button className="icon-button" aria-label="Dismiss notification" onClick={close}>
+      <button
+        type="button"
+        className="icon-button"
+        aria-label="Dismiss notification"
+        onClick={close}
+      >
         <X size={16} />
       </button>
     </div>

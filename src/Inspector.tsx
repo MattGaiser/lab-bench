@@ -87,6 +87,7 @@ export default function Inspector({
       <div className="inspector-tabs" role="tablist" aria-label="Authoring panels">
         {(['details', 'fault', 'review'] as Tab[]).map((name, i) => (
           <button
+            type="button"
             key={name}
             id={`tab-${name}`}
             role="tab"
@@ -211,6 +212,7 @@ export default function Inspector({
                       />
                     </label>
                     <button
+                      type="button"
                       className="icon-button"
                       aria-label={`Remove hint ${i + 1}`}
                       onClick={() => {
@@ -224,6 +226,7 @@ export default function Inspector({
                   </div>
                 ))}
                 <button
+                  type="button"
                   id="add-hint"
                   className="button secondary full"
                   disabled={lab.hints.length >= 3}
@@ -309,6 +312,7 @@ export default function Inspector({
                       </div>
                     ) : (
                       <button
+                        type="button"
                         className="button fault-button full"
                         onClick={() => changeFault(selected)}
                       >
@@ -332,6 +336,7 @@ export default function Inspector({
                         <p>Open conductor</p>
                       </div>
                       <button
+                        type="button"
                         className="icon-button"
                         aria-label="Remove fault"
                         title="Remove fault"
@@ -352,6 +357,7 @@ export default function Inspector({
                 <h3>{faultDetails(lab.fault).label}</h3>
                 <p className="field-help">{faultDetails(lab.fault).description}</p>
                 <button
+                  type="button"
                   className="button secondary full"
                   title="Replace the title, objective, instructions, and hints. Undo restores your text."
                   onClick={() => {
@@ -369,7 +375,7 @@ export default function Inspector({
                   {lessonApplied && <Check size={16} />}
                   {lessonApplied ? 'Suggested text applied' : 'Use suggested lesson text'}
                 </button>
-                <button className="text-button" onClick={() => changeFault(null)}>
+                <button type="button" className="text-button" onClick={() => changeFault(null)}>
                   <Trash2 size={15} /> Remove fault
                 </button>
               </div>
@@ -380,7 +386,11 @@ export default function Inspector({
               </summary>
               <div className="disclosure-body expected-behavior">
                 <p>{expectedSymptom(lab)}</p>
-                <button className="text-button small" onClick={() => showTab('details')}>
+                <button
+                  type="button"
+                  className="text-button small"
+                  onClick={() => showTab('details')}
+                >
                   Check that your brief matches
                   <ArrowUpRight size={13} />
                 </button>
@@ -411,6 +421,7 @@ export default function Inspector({
               <div className="disclosure-body checklist">
                 {checks.map((c) => (
                   <button
+                    type="button"
                     key={c.id}
                     className={`check-item ${c.pass ? 'passed' : ''}`}
                     onClick={() => {
@@ -455,25 +466,30 @@ export default function Inspector({
       </div>
       <div className="inspector-footer">
         {tab === 'details' ? (
-          <button className="button primary full" onClick={() => showTab('fault')}>
+          <button type="button" className="button primary full" onClick={() => showTab('fault')}>
             Next: choose a fault <ChevronRight size={16} />
           </button>
         ) : tab === 'fault' ? (
-          <button className="button primary full" onClick={() => showTab('review')}>
+          <button type="button" className="button primary full" onClick={() => showTab('review')}>
             Next: review lab <ChevronRight size={16} />
           </button>
         ) : (
           <>
-            <button id="preview-review" className="button primary full" onClick={previewLab}>
+            <button
+              type="button"
+              id="preview-review"
+              className="button primary full"
+              onClick={previewLab}
+            >
               <Play size={15} /> Apprentice preview
             </button>
-            <button className="button secondary full" onClick={exportLab}>
+            <button type="button" className="button secondary full" onClick={exportLab}>
               <ArrowDownToLine size={16} /> Export lab file
             </button>
             <p className="field-help">The file includes the answer. Share it with instructors.</p>
           </>
         )}
-        <button className="text-button" onClick={onLoadSample}>
+        <button type="button" className="text-button" onClick={onLoadSample}>
           <RefreshCw size={14} />
           Load sample exercise
         </button>

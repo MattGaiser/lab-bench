@@ -57,6 +57,7 @@ export default function StartPage({
   const heading = useRef<HTMLHeadingElement>(null);
   const input = useRef<HTMLTextAreaElement>(null);
   useEffect(() => {
+    void guideRequest;
     setPage('guide');
     setStep(0);
   }, [guideRequest]);
@@ -72,6 +73,7 @@ export default function StartPage({
     }
   }, [active, page]);
   useEffect(() => {
+    void connectionAttempt;
     if (!active || page !== 'compose') return;
     const controller = new AbortController();
     setAvailable(null);
@@ -180,6 +182,7 @@ export default function StartPage({
           >
             <div className="flow-topline">
               <button
+                type="button"
                 className="text-button"
                 onClick={
                   page === 'choice'
@@ -246,6 +249,7 @@ export default function StartPage({
                   </label>
                 </fieldset>
                 <button
+                  type="button"
                   className="button primary full flow-continue"
                   onClick={() =>
                     choice === 'sample' ? onSample() : setPage(proposal?.lab ? 'review' : 'compose')
@@ -261,7 +265,7 @@ export default function StartPage({
                 )}
                 <details className="other-starts">
                   <summary>Import a saved lab file</summary>
-                  <button className="text-button" onClick={onImport}>
+                  <button type="button" className="text-button" onClick={onImport}>
                     Import a lab file
                     <ArrowRight size={14} />
                   </button>
@@ -376,6 +380,7 @@ export default function StartPage({
                       </button>
                     ) : (
                       <button
+                        type="submit"
                         className="button primary"
                         disabled={!prompt.trim() || available !== true}
                       >
@@ -472,10 +477,18 @@ export default function StartPage({
                   </details>
                 )}
                 <div className="flow-review-actions">
-                  <button className="button secondary" onClick={() => setPage('compose')}>
+                  <button
+                    type="button"
+                    className="button secondary"
+                    onClick={() => setPage('compose')}
+                  >
                     Make a change
                   </button>
-                  <button className="button primary" onClick={() => onApply(proposal.lab!)}>
+                  <button
+                    type="button"
+                    className="button primary"
+                    onClick={() => onApply(proposal.lab!)}
+                  >
                     <Check size={16} />
                     Use this lab
                     <ArrowRight size={16} />
@@ -491,12 +504,13 @@ export default function StartPage({
           </section>
           <div className="guide-footnote">
             {hasDraft && (
-              <button className="text-button" onClick={onResume}>
+              <button type="button" className="text-button" onClick={onResume}>
                 Resume current draft
                 <ArrowRight size={14} />
               </button>
             )}
             <button
+              type="button"
               className="text-button"
               onClick={() => {
                 setStep(0);

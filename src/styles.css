@@ -2,18 +2,38 @@
 
 :root {
   font-family: 'Manrope Variable', Manrope, system-ui, sans-serif;
-  color: #233c34;
-  background: #f5f5ef;
+  color: var(--color-text);
+  background: var(--color-page);
   font-synthesis: none;
   font-weight: 450;
-  --ink: #233c34;
-  --muted: #627169;
-  --green: #204d3f;
-  --line: #dfe5db;
-  --paper: #fffefa;
-  --amber: #a55b16;
-  --soft-green: #edf2e8;
-  --radius: 12px;
+
+  /* Foundations: use these semantic roles for product UI. Circuit colors stay
+     local because they communicate electrical state rather than interface state. */
+  --color-page: #f5f5ef;
+  --color-surface: #fffefa;
+  --color-surface-subtle: #fbfbf6;
+  --color-surface-tint: #edf2e8;
+  --color-text: #233c34;
+  --color-text-muted: #627169;
+  --color-brand: #204d3f;
+  --color-brand-hover: #153b2f;
+  --color-border: #dfe5db;
+  --color-border-strong: #d5ddd1;
+  --color-focus: #3b8273;
+  --color-success: #3e6d44;
+  --color-warning: #a55b16;
+  --color-danger: #893e23;
+
+  --font-size-caption: 0.75rem;
+  --font-size-label: 0.8125rem;
+  --font-size-body: 0.875rem;
+  --line-height-copy: 1.65;
+
+  --radius-control: 8px;
+  --radius-card: 12px;
+  --radius-feature: 20px;
+  --shadow-card: 0 3px 6px #243b2910;
+  --shadow-feature: 0 14px 50px #253b2906;
 }
 * {
   box-sizing: border-box;
@@ -51,13 +71,13 @@ a {
 button:focus-visible,
 a:focus-visible,
 [tabindex]:focus-visible {
-  outline: 3px solid #3b8273;
+  outline: 3px solid var(--color-focus);
   outline-offset: 4px;
 }
 input:focus,
 textarea:focus,
 select:focus {
-  outline: 2px solid #488a70;
+  outline: 2px solid var(--color-focus);
   outline-offset: 1px;
 }
 svg {
@@ -75,7 +95,7 @@ h3 {
   font-weight: 650;
 }
 p {
-  line-height: 1.65;
+  line-height: var(--line-height-copy);
 }
 button {
   transition:
@@ -84,15 +104,16 @@ button {
     box-shadow 0.15s,
     transform 0.15s;
 }
+/* Application chrome and shared controls */
 .app-header {
   min-height: 74px;
   padding: 0 40px;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--color-border);
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 24px;
-  background: #fbfbf6;
+  background: var(--color-surface-subtle);
 }
 .brand {
   display: flex;
@@ -101,6 +122,10 @@ button {
   align-items: center;
   gap: 12px;
   text-decoration: none;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  background: transparent;
   font-size: 25px;
   letter-spacing: -1.3px;
   font-weight: 780;
@@ -119,7 +144,7 @@ button {
   height: 34px;
   width: 34px;
   border-radius: 9px;
-  background: var(--green);
+  background: var(--color-brand);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -144,11 +169,11 @@ button {
 .header-divider {
   width: 1px;
   height: 24px;
-  background: var(--line);
+  background: var(--color-border);
 }
 .workspace-name {
   font-size: 12px;
-  color: var(--muted);
+  color: var(--color-text-muted);
   font-weight: 550;
 }
 .header-right {
@@ -181,12 +206,12 @@ button {
   gap: 9px;
   align-items: center;
   font-size: 12px;
-  color: var(--muted);
+  color: var(--color-text-muted);
   margin-bottom: 28px;
 }
 .breadcrumbs strong {
   font-weight: 600;
-  color: var(--ink);
+  color: var(--color-text);
 }
 .page-heading {
   display: flex;
@@ -212,7 +237,7 @@ button {
   letter-spacing: 1.7px;
   font-weight: 760;
   line-height: 1.5;
-  color: var(--muted);
+  color: var(--color-text-muted);
 }
 .draft-pill {
   flex-shrink: 0;
@@ -232,7 +257,7 @@ h1 {
 }
 .page-heading p {
   margin-top: 9px;
-  color: var(--muted);
+  color: var(--color-text-muted);
   font-size: 12px;
 }
 .heading-actions {
@@ -246,9 +271,9 @@ h1 {
   align-items: center;
   justify-content: center;
   gap: 9px;
-  border-radius: 7px;
+  border-radius: var(--radius-control);
   padding: 11px 15px;
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   font-weight: 700;
   line-height: 1.5;
   border: 1px solid transparent;
@@ -257,20 +282,20 @@ h1 {
   white-space: normal;
 }
 .button.primary {
-  background: var(--green);
+  background: var(--color-brand);
   color: #fffef3;
-  border-color: var(--green);
+  border-color: var(--color-brand);
   box-shadow: 0 2px 3px #152b1510;
 }
 .button.primary:hover {
-  background: #153b2f;
+  background: var(--color-brand-hover);
 }
 .button.secondary {
-  background: var(--paper);
-  border-color: #d5ddd1;
+  background: var(--color-surface);
+  border-color: var(--color-border-strong);
 }
 .button.secondary:hover {
-  background: #edf2e8;
+  background: var(--color-surface-tint);
   border-color: #b8c8b4;
 }
 .button.subtle {
@@ -289,7 +314,7 @@ h1 {
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   text-align: left;
   line-height: 1.5;
 }
@@ -303,7 +328,7 @@ h1 {
   align-items: center;
   justify-content: center;
   border: 1px solid transparent;
-  border-radius: 5px;
+  border-radius: var(--radius-control);
   background: transparent;
   padding: 0;
   flex-shrink: 0;
@@ -317,7 +342,7 @@ h1 {
   color: #214d3b;
 }
 .workbench-meta {
-  border-top: 1px solid var(--line);
+  border-top: 1px solid var(--color-border);
   padding: 12px 0;
   display: flex;
   justify-content: space-between;
@@ -346,14 +371,14 @@ h1 {
   gap: 20px;
 }
 .ready-text {
-  color: #3e6d44;
+  color: var(--color-success);
 }
 .save-state {
   display: flex;
   gap: 6px;
   align-items: center;
   font-size: 10px;
-  color: var(--muted);
+  color: var(--color-text-muted);
 }
 .save-state i {
   display: inline-block;
@@ -363,7 +388,7 @@ h1 {
   background: #7b9c65;
 }
 .save-state.attention i {
-  background: #a86d25;
+  background: var(--color-warning);
 }
 .editor-layout {
   display: grid;
@@ -374,12 +399,13 @@ h1 {
 .editor-main {
   min-width: 0;
 }
+/* Circuit canvas and electrical-state visuals */
 .circuit-panel {
   overflow: hidden;
   border: 1px solid #d8dfd2;
-  border-radius: var(--radius);
-  background: var(--paper);
-  box-shadow: 0 3px 6px #243b2910;
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
 }
 .canvas-header {
   display: flex;
@@ -407,11 +433,11 @@ h1 {
 }
 .canvas-movement {
   padding: 12px 20px;
-  border-top: 1px solid var(--line);
+  border-top: 1px solid var(--color-border);
   font-size: 12px;
 }
 .canvas-movement p {
-  color: var(--muted);
+  color: var(--color-text-muted);
 }
 .movement-controls {
   display: flex;
@@ -431,7 +457,7 @@ h1 {
 .movement-arrows .icon-button {
   width: 40px;
   height: 40px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--color-border);
 }
 .tool-group {
   display: flex;
@@ -479,7 +505,7 @@ h1 {
 }
 .expected-behavior p {
   font-size: 11px;
-  color: var(--muted);
+  color: var(--color-text-muted);
   margin: 8px 0;
 }
 .canvas-bottom-note {
@@ -489,7 +515,7 @@ h1 {
   gap: 10px;
   padding: 0 20px 17px;
   font-size: 10px;
-  color: var(--muted);
+  color: var(--color-text-muted);
 }
 .canvas-bottom-note .text-button {
   white-space: nowrap;
@@ -498,7 +524,7 @@ h1 {
   font-size: 11px !important;
 }
 .muted {
-  color: var(--muted);
+  color: var(--color-text-muted);
 }
 .rail {
   fill: none;
@@ -666,7 +692,7 @@ h1 {
   align-items: center;
   gap: 18px;
   font-size: 10px;
-  color: var(--muted);
+  color: var(--color-text-muted);
   border-top: 1px solid #e0e6d9;
 }
 .canvas-legend > span {
@@ -768,11 +794,12 @@ h1 {
   margin-top: 2px;
   color: #62715b;
 }
+/* Instructor authoring panel */
 .inspector {
   border: 1px solid #d8dfd2;
-  background: var(--paper);
-  border-radius: var(--radius);
-  box-shadow: 0 3px 6px #243b2908;
+  background: var(--color-surface);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
   overflow: clip;
 }
 .inspector-title {
@@ -789,14 +816,14 @@ h1 {
   font-size: 11px;
   font-family: ui-monospace, monospace;
   color: #617057;
-  border: 1px solid var(--line);
+  border: 1px solid var(--color-border);
   padding: 3px 6px;
   border-radius: 4px;
 }
 .inspector-tabs {
   display: flex;
   flex-wrap: wrap;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--color-border);
   padding: 0 16px;
   gap: 6px;
 }
@@ -807,7 +834,7 @@ h1 {
   padding: 13px 8px 12px;
   font-size: 11px;
   font-weight: 600;
-  color: var(--muted);
+  color: var(--color-text-muted);
   display: flex;
   gap: 7px;
   align-items: center;
@@ -845,7 +872,7 @@ h1 {
 }
 .panel-intro p {
   font-size: 12px;
-  color: var(--muted);
+  color: var(--color-text-muted);
 }
 .field {
   display: flex;
@@ -854,7 +881,7 @@ h1 {
   margin-bottom: 18px;
 }
 .field > span {
-  font-size: 11px;
+  font-size: var(--font-size-label);
   font-weight: 700;
 }
 .field input,
@@ -866,7 +893,7 @@ h1 {
   background: #fffefa;
   color: #304633;
   padding: 10px 11px;
-  font-size: 12px;
+  font-size: var(--font-size-body);
   line-height: 1.65;
   transition: border-color 0.15s;
   min-width: 0;
@@ -962,13 +989,13 @@ h1 {
 }
 .placed-fault p {
   font-size: 11px;
-  color: var(--muted);
+  color: var(--color-text-muted);
   margin-top: 3px;
 }
 .empty-note {
   font-size: 12px;
   line-height: 1.7;
-  color: var(--muted);
+  color: var(--color-text-muted);
   padding: 16px 0;
 }
 .tip-card {
@@ -996,7 +1023,7 @@ h1 {
 }
 .tip-card.neutral {
   background: #f4f5ef;
-  color: var(--muted);
+  color: var(--color-text-muted);
 }
 .tip-card.neutral p {
   margin: 0;
@@ -1008,7 +1035,7 @@ h1 {
   margin-left: auto;
 }
 .inspector-footer {
-  border-top: 1px solid var(--line);
+  border-top: 1px solid var(--color-border);
   padding: 15px;
   text-align: center;
   background: #fafbf5;
@@ -1023,7 +1050,7 @@ h1 {
 .field-help {
   font-size: 11px;
   line-height: 1.7;
-  color: var(--muted);
+  color: var(--color-text-muted);
   margin: 6px 0 14px;
 }
 .hint-field {
@@ -1064,7 +1091,7 @@ h1 {
 }
 .readiness-card p {
   font-size: 12px;
-  color: var(--muted);
+  color: var(--color-text-muted);
 }
 .checklist {
   margin: 22px 0;
@@ -1098,7 +1125,7 @@ h1 {
 }
 .check-item p {
   font-size: 11px;
-  color: var(--muted);
+  color: var(--color-text-muted);
   margin-top: 4px;
 }
 .export-panel-button {
@@ -1111,7 +1138,7 @@ h1 {
   justify-content: flex-end;
   padding: 19px 0 24px;
   font-size: 10px;
-  color: var(--muted);
+  color: var(--color-text-muted);
   margin-top: 25px;
 }
 .recovery-banner {
@@ -1141,6 +1168,7 @@ h1 {
   text-decoration: underline;
   font-size: 11px;
 }
+/* Feedback and dialogs */
 .toast {
   position: fixed;
   z-index: 20;
@@ -1182,9 +1210,9 @@ h1 {
   max-width: calc(100vw - 30px);
   border: 1px solid #d3dec8;
   border-radius: 16px;
-  background: var(--paper);
+  background: var(--color-surface);
   padding: 30px;
-  color: var(--ink);
+  color: var(--color-text);
   box-shadow: 0 24px 80px #102a2a40;
 }
 .about-dialog::backdrop {
@@ -1204,7 +1232,7 @@ h1 {
 }
 .about-dialog > p {
   font-size: 12px;
-  color: var(--muted);
+  color: var(--color-text-muted);
   margin-bottom: 13px;
 }
 .about-facts {
@@ -1212,7 +1240,7 @@ h1 {
   flex-direction: column;
   gap: 16px;
   padding: 20px 0;
-  border-block: 1px solid var(--line);
+  border-block: 1px solid var(--color-border);
   margin: 22px 0;
 }
 .about-facts strong {
@@ -1220,12 +1248,13 @@ h1 {
 }
 .about-facts p {
   font-size: 12px;
-  color: var(--muted);
+  color: var(--color-text-muted);
   margin-top: 4px;
 }
 .about-dialog .button {
   margin-top: 12px;
 }
+/* Apprentice preview */
 .preview-top {
   display: flex;
   align-items: center;
@@ -1279,7 +1308,7 @@ h1 {
   border: 1px solid #d8dfd2;
   border-radius: 12px;
   padding: 23px;
-  background: var(--paper);
+  background: var(--color-surface);
 }
 .side-card h2 {
   font-size: 20px;
@@ -1293,12 +1322,12 @@ h1 {
 }
 .briefing-copy {
   font-size: 12px;
-  color: var(--muted);
+  color: var(--color-text-muted);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
 .hints-box {
-  border-top: 1px solid var(--line);
+  border-top: 1px solid var(--color-border);
   padding-top: 15px;
   margin-top: 18px;
 }
@@ -1400,13 +1429,13 @@ h1 {
 }
 .control-hint {
   font-size: 10px;
-  color: var(--muted);
+  color: var(--color-text-muted);
   line-height: 1.7;
   margin-left: auto;
 }
 .inspect-card > p {
   font-size: 12px;
-  color: var(--muted);
+  color: var(--color-text-muted);
   margin-bottom: 15px;
 }
 .inspect-card .field-help {
@@ -1451,7 +1480,7 @@ h1 {
 }
 .observations p {
   font-size: 12px;
-  color: var(--muted);
+  color: var(--color-text-muted);
   margin-top: 6px;
 }
 .observations ol {
@@ -1470,6 +1499,7 @@ h1 {
   margin-right: 8px;
   color: #91a47b;
 }
+/* Responsive workbench and preview */
 @media (min-width: 1600px) {
   .editor-layout,
   .preview-layout {
@@ -1888,7 +1918,7 @@ h1 {
   }
 }
 
-/* One decision per screen. */
+/* Guided entry and scenario drafting */
 .guided-entry .workspace-name,
 .guided-entry .header-divider,
 .guided-entry .tour-launch,
@@ -1902,11 +1932,11 @@ h1 {
 }
 .guide-card,
 .flow-card {
-  background: var(--paper);
+  background: var(--color-surface);
   border: 1px solid #dce2d6;
-  border-radius: 20px;
+  border-radius: var(--radius-feature);
   overflow: hidden;
-  box-shadow: 0 14px 50px #253b2906;
+  box-shadow: var(--shadow-feature);
 }
 .guide-art {
   background: #edf2e6;
@@ -1943,7 +1973,7 @@ h1 {
 .guide-copy > p {
   font-size: 15px;
   line-height: 1.8;
-  color: var(--muted);
+  color: var(--color-text-muted);
   max-width: 510px;
   margin: auto;
 }
@@ -1980,7 +2010,7 @@ h1 {
   padding: 22px 0;
   display: flex;
   justify-content: center;
-  color: var(--muted);
+  color: var(--color-text-muted);
   font-size: 12px;
 }
 .guide-footnote .text-button {
@@ -2069,9 +2099,9 @@ h1 {
   min-height: 280px;
   align-content: center;
   padding: 36px 24px;
-  background: #fffefa;
+  background: var(--color-surface);
   border: 1px solid #d4dfca;
-  border-radius: 12px;
+  border-radius: var(--radius-card);
   text-align: center;
   display: grid;
   justify-items: center;
@@ -2107,7 +2137,7 @@ h1 {
   outline: none;
 }
 .flow-intro {
-  color: var(--muted);
+  color: var(--color-text-muted);
   font-size: 14px;
   margin: 12px 0 28px;
   overflow-wrap: anywhere;
@@ -2122,7 +2152,7 @@ h1 {
 .start-choice label {
   padding: 22px;
   border: 1px solid #dce2d6;
-  border-radius: 12px;
+  border-radius: var(--radius-card);
   display: flex;
   align-items: center;
   gap: 16px;
@@ -2152,18 +2182,18 @@ h1 {
   display: block;
   font-size: 12px;
   line-height: 1.7;
-  color: var(--muted);
+  color: var(--color-text-muted);
   margin-top: 3px;
 }
 .flow-continue {
   margin-top: 24px;
 }
 .other-starts {
-  border-top: 1px solid var(--line);
+  border-top: 1px solid var(--color-border);
   margin-top: 26px;
   padding-top: 20px;
   font-size: 12px;
-  color: var(--muted);
+  color: var(--color-text-muted);
 }
 .other-starts summary,
 .assistant-privacy summary,
@@ -2239,15 +2269,15 @@ h1 {
   }
 }
 .assistant-submit > span {
-  color: var(--muted);
+  color: var(--color-text-muted);
   font-size: 11px;
 }
 .assistant-privacy {
-  border-top: 1px solid var(--line);
+  border-top: 1px solid var(--color-border);
   padding-top: 20px;
   margin-top: 28px;
   font-size: 11px;
-  color: var(--muted);
+  color: var(--color-text-muted);
 }
 .assistant-privacy p {
   margin-top: 10px;
@@ -2264,7 +2294,7 @@ h1 {
   font-size: 12px;
   padding: 13px;
   margin-top: 18px;
-  color: #893e23;
+  color: var(--color-danger);
   background: #fff0e6;
   border-radius: 8px;
 }
@@ -2280,7 +2310,7 @@ h1 {
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  color: var(--muted);
+  color: var(--color-text-muted);
   margin-bottom: 12px;
 }
 .proposal-facts {
@@ -2320,12 +2350,12 @@ h1 {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-  border-top: 1px solid var(--line);
+  border-top: 1px solid var(--color-border);
   padding-top: 24px;
   margin-top: 26px;
 }
 .proposal-note {
-  color: var(--muted);
+  color: var(--color-text-muted);
   font-size: 11px;
   margin-top: 16px;
   overflow-wrap: anywhere;
@@ -2429,10 +2459,10 @@ h1 {
   .canvas-scroll-hint {
     display: block;
     font-size: 11px;
-    color: var(--muted);
+    color: var(--color-text-muted);
     background: #f4f6ef;
     padding: 9px 14px;
-    border-bottom: 1px solid var(--line);
+    border-bottom: 1px solid var(--color-border);
   }
 }
 @media (max-width: 600px) {
@@ -2563,7 +2593,7 @@ h1 {
 }
 .diagnosis-heading {
   margin-top: 24px;
-  border-top: 1px solid var(--line);
+  border-top: 1px solid var(--color-border);
   padding-top: 20px;
 }
 .diagnosis-heading p {
@@ -2717,9 +2747,9 @@ h1 {
 }
 /* Collapsible detail keeps the next action close to the current decision. */
 .disclosure {
-  border: 1px solid var(--line);
-  border-radius: 9px;
-  background: var(--paper);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
   margin-bottom: 10px;
   min-width: 0;
 }
@@ -2756,7 +2786,7 @@ h1 {
   transform: rotate(225deg);
 }
 .disclosure > summary small {
-  color: var(--muted);
+  color: var(--color-text-muted);
   font-size: 11px;
   font-weight: 500;
   margin-left: auto;
@@ -2770,7 +2800,7 @@ h1 {
   border-radius: 8px;
 }
 .disclosure[open] > summary {
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--color-border);
 }
 .disclosure-body {
   padding: 16px;
@@ -2797,7 +2827,7 @@ h1 {
   display: grid;
   gap: 12px;
   padding: 16px;
-  background: var(--paper);
+  background: var(--color-surface);
   box-shadow: 0 -6px 16px #233c3406;
 }
 .inspector-footer > .text-button {
@@ -2871,7 +2901,7 @@ h1 {
   position: sticky;
   flex-wrap: wrap;
   bottom: 0;
-  background: var(--paper);
+  background: var(--color-surface);
   padding-bottom: 16px;
   z-index: 1;
 }
