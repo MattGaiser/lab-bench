@@ -7,12 +7,6 @@
     "enabled": true,
     "rules": {
       "preset": "recommended",
-      "a11y": {
-        "noNoninteractiveTabindex": "off",
-        "noStaticElementInteractions": "off",
-        "useAriaPropsSupportedByRole": "off",
-        "useSemanticElements": "off"
-      },
       "complexity": {
         "noImportantStyles": "off"
       },
@@ -25,5 +19,20 @@
         "noArrayIndexKey": "off"
       }
     }
-  }
+  },
+  "overrides": [
+    {
+      "includes": ["src/CircuitCanvas.tsx"],
+      "linter": {
+        "rules": {
+          "a11y": {
+            "noNoninteractiveTabindex": "off",
+            "noStaticElementInteractions": "off",
+            "useAriaPropsSupportedByRole": "off",
+            "useSemanticElements": "off"
+          }
+        }
+      }
+    }
+  ]
 }

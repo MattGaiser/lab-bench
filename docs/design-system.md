@@ -6,6 +6,8 @@ Lab Bench uses a compact interface system built for a technical authoring workfl
 
 The semantic custom properties at the top of `src/styles.css` are the shared source for product UI. They cover surfaces, text, actions, borders, status colors, type roles, radii, focus, and shadows. Add or reuse a semantic role instead of introducing another near-match. Circuit-specific colors may stay local because they communicate electrical state.
 
+Edit existing component rules and their responsive variants before adding another override. Remove declarations superseded at every viewport. Keep source lint exceptions scoped to the relevant file: the SVG circuit uses keyboard-interactive groups and a focusable scroll region, while ordinary interface elements use the standard accessibility rules.
+
 ## Component rules
 
 - Primary buttons advance or complete the current task. Secondary buttons perform useful side actions. Text buttons handle navigation or low-emphasis actions.
