@@ -172,13 +172,6 @@ export default function StartPage({
                     ? 'Back to review'
                     : 'Back to choices'}
               </button>
-              <span className="overline">
-                {page === 'choice'
-                  ? 'YOUR STARTING POINT'
-                  : page === 'compose'
-                    ? 'DESCRIBE THE LESSON'
-                    : 'REVIEW YOUR LAB'}
-              </span>
             </div>
             {page === 'choice' && (
               <>

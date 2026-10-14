@@ -1949,7 +1949,7 @@ h1 {
 }
 .guide-diagram text {
   font:
-    650 10px 'Manrope Variable',
+    650 18px 'Manrope Variable',
     sans-serif;
   fill: #365341;
   text-anchor: middle;
@@ -1958,10 +1958,6 @@ h1 {
   padding: 34px 50px 28px;
   text-align: center;
   animation: card-enter 0.18s ease-out;
-}
-.guide-copy .overline {
-  font-size: 9px;
-  letter-spacing: 1.6px;
 }
 .guide-copy h1 {
   font-size: clamp(28px, 3.1vw, 38px);
@@ -2014,41 +2010,32 @@ h1 {
   color: var(--muted);
   font-size: 12px;
 }
-.guide-footnote > span {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
 .guide-footnote .text-button {
   font-size: 12px;
 }
 .guide-note {
-  max-width: 450px;
+  max-width: 400px;
   text-align: center;
 }
 .guide-note-icon {
   display: inline-grid;
   place-items: center;
-  width: 42px;
-  height: 42px;
+  width: 60px;
+  height: 60px;
   border: 1px solid #c4d4b5;
   border-radius: 12px;
   margin-bottom: 12px;
 }
-.guide-note .overline {
-  font-size: 8px;
-  color: #51664a;
-}
 .guide-note strong {
-  font-size: 18px;
-  line-height: 1.7;
+  font-size: 26px;
+  line-height: 1.5;
   font-weight: 600;
   display: block;
   margin: 10px 0;
 }
 .guide-note-caption {
   color: #52664b;
-  font-size: 11px;
+  font-size: 14px;
 }
 .guide-observation {
   display: grid;
@@ -2067,30 +2054,30 @@ h1 {
   border: 5px solid #d0dcc5;
   box-shadow: 0 3px 0 #b2c3a9;
   border-radius: 50%;
-  width: 68px;
-  height: 68px;
+  width: 112px;
+  height: 112px;
   display: grid;
   place-items: center;
   color: #fff;
-  font-size: 10px;
+  font-size: 16px;
   font-weight: 750;
 }
 .demo-start.released {
   background: #6c8064;
 }
 .guide-observation > div > span:not(.demo-start) {
-  font-size: 11px;
+  font-size: 14px;
   color: #52664b;
 }
 .guide-observation strong {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 11px;
+  gap: 8px;
+  font-size: 16px;
 }
 .demo-light {
-  width: 7px;
-  height: 7px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   background: #8a9886;
 }
@@ -2100,11 +2087,15 @@ h1 {
 }
 .guide-observation > p {
   grid-column: 1 / -1;
-  font-size: 10px;
+  font-size: 13px;
   color: #52664b;
 }
 .guide-file {
-  padding: 25px 32px;
+  width: 100%;
+  max-width: 410px;
+  min-height: 280px;
+  align-content: center;
+  padding: 36px 24px;
   background: #fffefa;
   border: 1px solid #d4dfca;
   border-radius: 12px;
@@ -2114,17 +2105,14 @@ h1 {
   gap: 11px;
 }
 .guide-file strong {
-  font-size: 16px;
+  font-size: 22px;
+  overflow-wrap: anywhere;
 }
 .guide-file span {
   display: flex;
   gap: 6px;
-  font-size: 11px;
+  font-size: 14px;
   align-items: center;
-}
-.guide-file p {
-  color: var(--muted);
-  font-size: 10px;
 }
 .flow-card {
   padding: 32px 42px;
@@ -2138,9 +2126,6 @@ h1 {
 }
 .flow-topline .text-button {
   font-size: 12px;
-}
-.flow-topline .overline {
-  font-size: 9px;
 }
 .flow-card h1 {
   font-size: 30px;
@@ -2443,10 +2428,6 @@ h1 {
   .guide-copy {
     padding: 25px 22px;
   }
-  .guide-copy .overline {
-    font-size: 8px;
-    letter-spacing: 1px;
-  }
   .guide-copy h1 {
     font-size: 29px;
   }
@@ -2470,19 +2451,36 @@ h1 {
     gap: 5px;
   }
   .guide-note strong {
-    font-size: 15px;
+    font-size: 20px;
+  }
+  .guide-note-icon {
+    width: 44px;
+    height: 44px;
   }
   .guide-note-caption {
-    font-size: 10px;
+    font-size: 12px;
   }
   .guide-observation {
-    gap: 15px;
+    gap: 18px 12px;
+  }
+  .demo-start {
+    width: 82px;
+    height: 82px;
+    font-size: 13px;
+  }
+  .guide-observation > div > span:not(.demo-start),
+  .guide-observation strong {
+    font-size: 12px;
   }
   .guide-file {
-    padding: 20px;
+    padding: 24px 16px;
+    min-height: 210px;
   }
   .guide-file strong {
-    font-size: 14px;
+    font-size: 18px;
+  }
+  .guide-file span {
+    font-size: 12px;
   }
   .flow-card {
     padding: 22px;
@@ -2589,7 +2587,7 @@ h1 {
 }
 .guide-copy h1 {
   font-size: clamp(30px, 3vw, 40px);
-  margin: 17px 0 22px;
+  margin: 0 0 22px;
 }
 .guide-copy > p {
   font-size: 16px;
@@ -2603,9 +2601,6 @@ h1 {
 }
 .guide-navigation {
   grid-column: 1 / -1;
-}
-.guide-diagram text {
-  font-size: 12px;
 }
 .demo-start.released {
   background: #5e7357;
@@ -2657,18 +2652,18 @@ h1 {
     display: block;
   }
   .guide-art {
-    min-height: 180px;
-    padding: 20px 12px;
+    min-height: 250px;
+    padding: 20px 16px;
   }
   .guide-diagram {
-    max-width: 440px;
+    max-width: 340px;
   }
   .guide-copy {
     padding: 25px 24px;
   }
   .guide-copy h1 {
     font-size: 29px;
-    margin: 12px 0 16px;
+    margin: 0 0 16px;
   }
   .guide-copy > p {
     font-size: 14px;

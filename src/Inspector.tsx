@@ -101,7 +101,6 @@ export default function Inspector({
         {tab === 'details' && (
           <>
             <div className="panel-intro">
-              <span className="overline">THE BRIEF</span>
               <h3>Write the brief.</h3>
               <p>
                 Write what apprentices should observe and investigate. Keep the fault location out
@@ -199,7 +198,6 @@ export default function Inspector({
         {tab === 'fault' && (
           <>
             <div className="panel-intro">
-              <span className="overline">A LITTLE FRICTION. A LOT OF LEARNING.</span>
               <h3>Choose the fault.</h3>
               <p>
                 Introduce one open conductor. The apprentice’s job is to find it and explain why.
@@ -295,7 +293,6 @@ export default function Inspector({
               <div className="readiness-icon">
                 {ready ? <ShieldCheck size={28} /> : <FileCheck2 size={28} />}
               </div>
-              <span className="overline">LAB CHECKS</span>
               <h3>{ready ? 'Ready for a practice run.' : 'A few things to finish.'}</h3>
               <p>
                 {ready

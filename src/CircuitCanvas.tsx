@@ -80,7 +80,6 @@ export default function CircuitCanvas({
     >
       <div className="canvas-header">
         <div>
-          <span className="overline">CIRCUIT 01</span>
           <h2>Start / stop with seal-in</h2>
         </div>
         <span className="model-badge">

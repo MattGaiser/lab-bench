@@ -363,7 +363,6 @@ export default function App() {
             <div className="page-heading">
               <div className="heading-copy">
                 <div className="heading-eyebrow">
-                  <span className="overline">LAB EDITOR</span>
                   <span className="draft-pill">Draft exercise</span>
                 </div>
                 <h1>{lab.title.trim() || 'Untitled exercise'}</h1>

@@ -91,7 +91,6 @@ export default function Preview({ lab, onClose }: { lab: Lab; onClose: () => voi
       </div>
       <div className="page-heading preview-heading">
         <div>
-          <span className="overline">MOTOR CONTROLS / TROUBLESHOOTING</span>
           <h1 ref={headingRef} tabIndex={-1}>
             {lab.title}
           </h1>

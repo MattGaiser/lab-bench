@@ -1,38 +1,33 @@
 ﻿import { useEffect, useRef } from 'react';
-import { ArrowLeft, ArrowRight, Check, Compass, FileDown, Lightbulb } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, FileDown, Lightbulb } from 'lucide-react';
 
 const slides = [
   {
     title: 'Let’s walk the bench.',
-    label: 'WELCOME TO LAB BENCH',
     body: 'Create a troubleshooting exercise for your apprentices. Choose a fault, write the instructions, then test the circuit before sharing the lab.',
     detail:
       'You’ll work with a ready-wired start/stop circuit. These five cards explain the process before you choose a sample or ask AI to draft a lesson.',
   },
   {
     title: 'Write the apprentice’s instructions.',
-    label: '01 / WRITE THE BRIEF',
     body: 'Give the lab a title, describe the symptom, and explain what the apprentice should investigate. Add a learning objective, a duration, and optional hints.',
     detail:
       'Apprentices see these instructions in preview. The fault marker is hidden, so keep the answer out of your brief and let them work it out.',
   },
   {
     title: 'Choose one open conductor.',
-    label: '02 / SET THE FAULT',
     body: 'Select a conductor, labeled W1–W5, then choose “Place open fault here.” An open conductor is a break in the path that carries current.',
     detail:
       'In the sample, W3 is the holding branch. It normally keeps the K1 contactor energized after START is released. Opening W3 makes K1 switch off when you let go.',
   },
   {
     title: 'Test the lab as an apprentice.',
-    label: '03 / RUN A PRACTICE ATTEMPT',
     body: 'Open Apprentice preview, turn the simulated supply on, then hold and release START. Check that the circuit behaves as your instructions describe.',
     detail:
       'Next, isolate the supply and inspect a conductor. The apprentice selects the faulty conductor and explains what it changes. Preview leaves your lab draft unchanged.',
   },
   {
     title: 'Export a reusable lab file.',
-    label: '04 / SAVE AND REUSE',
     body: 'Review checks that the brief and fault are complete. Export downloads a .lab.json file containing your instructions, fault, hints, and circuit layout.',
     detail:
       'Import reopens the same exercise on this or another device. The file includes the instructor’s answer, so share it with instructors rather than using it as a secure student assignment.',
@@ -43,15 +38,14 @@ function Illustration({ step }: { step: number }) {
     return (
       <div className="guide-note">
         <span className="guide-note-icon">
-          <Lightbulb size={22} />
+          <Lightbulb size={30} />
         </span>
-        <span className="overline">THE APPRENTICE’S BRIEF</span>
         <strong>
           “The pump runs while START is held.
           <br />
           Why does it stop when you let go?”
         </strong>
-        <span className="guide-note-caption">Example instructions for a holding-circuit lab</span>
+        <span className="guide-note-caption">Example apprentice instructions</span>
       </div>
     );
   if (step === 3)
@@ -80,19 +74,18 @@ function Illustration({ step }: { step: number }) {
   if (step === 4)
     return (
       <div className="guide-file">
-        <FileDown size={35} strokeWidth={1.4} />
+        <FileDown size={56} strokeWidth={1.4} />
         <strong>Holding circuit.lab.json</strong>
         <span>
           <Check size={15} />
           Brief, fault, hints, and layout
         </span>
-        <p>Reusable instructor file · includes the answer</p>
       </div>
     );
   return (
     <svg
       className="guide-diagram"
-      viewBox="0 0 560 210"
+      viewBox="0 0 480 330"
       role="img"
       aria-label={
         step === 0
@@ -101,36 +94,36 @@ function Illustration({ step }: { step: number }) {
       }
     >
       <path
-        d="M60 42V173 M500 42V173 M60 100H180 M180 100V55H340V100H500 M180 100V155H340V100"
+        d="M20 60V270 M460 60V270 M20 165H150 M150 165V85H310V165H460 M150 165V245H310V165"
         fill="none"
         stroke="#6c8976"
-        strokeWidth="2.5"
+        strokeWidth="3"
         strokeLinejoin="round"
       />
-      <rect x="84" y="78" width="66" height="44" rx="9" fill="#fffefa" stroke="#9caf98" />
-      <text x="117" y="104">
+      <rect x="35" y="134" width="90" height="62" rx="12" fill="#fffefa" stroke="#9caf98" />
+      <text x="80" y="171">
         STOP
       </text>
-      <rect x="224" y="33" width="72" height="44" rx="9" fill="#fffefa" stroke="#9caf98" />
-      <text x="260" y="59">
+      <rect x="180" y="54" width="105" height="62" rx="12" fill="#fffefa" stroke="#9caf98" />
+      <text x="232.5" y="91">
         START
       </text>
-      <rect x="224" y="133" width="72" height="44" rx="9" fill="#fffefa" stroke="#9caf98" />
-      <text x="260" y="159">
+      <rect x="180" y="214" width="105" height="62" rx="12" fill="#fffefa" stroke="#9caf98" />
+      <text x="232.5" y="251">
         K1 AUX
       </text>
-      <rect x="389" y="78" width="72" height="44" rx="9" fill="#fffefa" stroke="#9caf98" />
-      <text x="425" y="104">
+      <rect x="340" y="134" width="100" height="62" rx="12" fill="#fffefa" stroke="#9caf98" />
+      <text x="390" y="171">
         K1 COIL
       </text>
-      <circle cx="180" cy="100" r="4" fill="#6c8976" />
-      <circle cx="340" cy="100" r="4" fill="#6c8976" />
+      <circle cx="150" cy="165" r="5" fill="#6c8976" />
+      <circle cx="310" cy="165" r="5" fill="#6c8976" />
       {step === 2 && (
         <>
-          <path d="M180 113V139" stroke="#edf2e6" strokeWidth="9" />
-          <path d="M180 113L191 132" stroke="#a55b16" strokeWidth="3" />
-          <circle cx="180" cy="139" r="3" fill="#a55b16" />
-          <text x="142" y="158" fill="#8b501c">
+          <path d="M150 190V222" stroke="#edf2e6" strokeWidth="10" />
+          <path d="M150 190L168 215" stroke="#a55b16" strokeWidth="3" />
+          <circle cx="150" cy="222" r="4" fill="#a55b16" />
+          <text x="82" y="243" fill="#8b501c">
             W3 OPEN
           </text>
         </>
@@ -166,7 +159,6 @@ export default function Walkthrough({
           <Illustration step={step} />
         </div>
         <div className="guide-copy" key={step}>
-          <span className="overline">{slide.label}</span>
           <h1 id="guide-title" ref={heading} tabIndex={-1}>
             {slide.title}
           </h1>
@@ -196,19 +188,14 @@ export default function Walkthrough({
           </button>
         </nav>
       </section>
-      <div className="guide-footnote">
-        {onResume ? (
+      {onResume && (
+        <div className="guide-footnote">
           <button className="text-button" onClick={onResume}>
             Resume current draft
             <ArrowRight size={14} />
           </button>
-        ) : (
-          <span>
-            <Compass size={14} />
-            Five cards · Your saved draft stays unchanged
-          </span>
-        )}
-      </div>
+        </div>
+      )}
     </>
   );
 }
