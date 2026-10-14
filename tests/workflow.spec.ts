@@ -111,7 +111,8 @@ test('corrupt storage remains available for recovery until explicitly replaced',
     .poll(() => page.evaluate(() => localStorage.getItem('lab-bench:draft:v1')))
     .toBe('{bad');
   await page.getByRole('button', { name: 'Replace stored draft with this copy' }).click();
-  await expect(page.getByText('Saved on this device')).toBeVisible();
+  await expect(page.getByText('Saved on this device', { exact: true })).toBeVisible();
+  await expect(page.locator('.toast')).toContainText('Draft saved on this device.');
   expect(
     JSON.parse((await page.evaluate(() => localStorage.getItem('lab-bench:draft:v1')))!),
   ).toEqual(exampleLab());

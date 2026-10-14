@@ -38,6 +38,7 @@ type Props = {
   onRedo?: () => void;
   canUndo?: boolean;
   canRedo?: boolean;
+  onFeedback: (message: string) => void;
 };
 export default function CircuitCanvas({
   lab,
@@ -52,6 +53,7 @@ export default function CircuitCanvas({
   onRedo,
   canUndo,
   canRedo,
+  onFeedback,
 }: Props) {
   const svgRef = useRef<SVGSVGElement>(null);
   const movementRef = useRef<HTMLDetailsElement>(null);
@@ -102,6 +104,15 @@ export default function CircuitCanvas({
   const resetView = () => {
     setZoom(1);
     setPan({ x: 0, y: 0 });
+  };
+  const resetWithFeedback = () => {
+    const viewport = svgRef.current?.parentElement;
+    const unchanged = zoom === 1 && pan.x === 0 && pan.y === 0 && !viewport?.scrollLeft;
+    resetView();
+    if (viewport) viewport.scrollLeft = 0;
+    onFeedback(
+      unchanged ? 'Already at the default view (100%).' : 'Default view restored at 100%.',
+    );
   };
   const movement = (x: number, y: number) => {
     const current = moveTarget === 'view' ? pan : lab.positions[moveTarget];
@@ -174,7 +185,9 @@ export default function CircuitCanvas({
             >
               <Minus size={16} />
             </button>
-            <span className="zoom-label">{Math.round(zoom * 100)}%</span>
+            <span className="zoom-label" role="status" aria-label="Canvas zoom" aria-atomic="true">
+              {Math.round(zoom * 100)}%
+            </span>
             <button
               className="icon-button"
               aria-label="Zoom in"
@@ -188,7 +201,7 @@ export default function CircuitCanvas({
               className="icon-button"
               aria-label="Reset zoom and pan"
               title="Reset zoom and pan"
-              onClick={resetView}
+              onClick={resetWithFeedback}
             >
               <Expand size={16} />
             </button>
@@ -456,7 +469,7 @@ export default function CircuitCanvas({
           </svg>
         </div>
         <div className="canvas-bottom-note">
-          <button className="text-button small" onClick={resetView}>
+          <button className="text-button small" onClick={resetWithFeedback}>
             <RotateCcw size={13} /> Reset view
           </button>
         </div>
@@ -509,11 +522,15 @@ export default function CircuitCanvas({
                   className="icon-button"
                   aria-label={`${moveTarget === 'view' ? 'Pan' : `Move ${componentInfo[moveTarget].label}`} ${direction}`}
                   disabled={movement(x, y).atLimit}
-                  onClick={() =>
-                    moveTarget === 'view'
-                      ? setPan(movement(x, y).next)
-                      : onMove?.(moveTarget, movement(x, y).next)
-                  }
+                  onClick={() => {
+                    if (moveTarget === 'view') setPan(movement(x, y).next);
+                    else onMove?.(moveTarget, movement(x, y).next);
+                    onFeedback(
+                      moveTarget === 'view'
+                        ? `Circuit view panned ${direction}.`
+                        : `${componentInfo[moveTarget].label} moved ${direction}.`,
+                    );
+                  }}
                 >
                   <Icon size={18} />
                 </button>

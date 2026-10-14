@@ -162,6 +162,8 @@ test('AI guidance, errors, back navigation and cancellation preserve user work',
   mode = 'delayed';
   await page.getByRole('button', { name: 'Send reply' }).click();
   await page.getByRole('button', { name: 'Cancel', exact: true }).click();
+  await expect(page.locator('.toast')).toContainText('Drafting canceled.');
+  await expect(page.getByLabel('How would you like to continue?')).toBeFocused();
   await expect(page.getByRole('button', { name: 'Send reply' })).toBeEnabled();
   await page.getByRole('button', { name: 'Send reply' }).click();
   await page.getByRole('button', { name: 'Back to choices', exact: true }).click();

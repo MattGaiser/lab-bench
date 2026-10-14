@@ -1144,7 +1144,7 @@ h1 {
 .toast {
   position: fixed;
   z-index: 20;
-  bottom: 25px;
+  top: 16px;
   left: 50%;
   transform: translateX(-50%);
   background: #204d3f;
@@ -1158,6 +1158,10 @@ h1 {
   font-size: 12px;
   max-width: calc(100vw - 36px);
   width: max-content;
+}
+.toast > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 .toast.error {
   background: #744722;
@@ -1807,7 +1811,7 @@ h1 {
     gap: 12px;
   }
   .toast {
-    bottom: 15px;
+    top: 12px;
     align-items: flex-start;
     font-size: 12px;
   }

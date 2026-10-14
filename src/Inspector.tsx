@@ -31,6 +31,7 @@ type Props = {
   previewLab: () => void;
   exportLab: () => void;
   onLoadSample: () => void;
+  onFeedback: (message: string) => void;
 };
 export default function Inspector({
   lab,
@@ -43,11 +44,27 @@ export default function Inspector({
   previewLab,
   exportLab,
   onLoadSample,
+  onFeedback,
 }: Props) {
   const titleRef = useRef<HTMLInputElement>(null);
   const checks = checkLab(lab);
   const ready = checks.every((c) => c.pass);
   const completed = checks.filter((c) => c.pass).length;
+  const lesson = lab.fault && !isWire(lab.fault) ? contactLessons[lab.fault] : null;
+  const lessonApplied =
+    !!lesson &&
+    lab.title === lesson.title &&
+    lab.objective === lesson.objective &&
+    lab.briefing === lesson.briefing &&
+    JSON.stringify(lab.hints) === JSON.stringify(lesson.hints);
+  const changeFault = (fault: Lab['fault']) => {
+    update({ fault });
+    onFeedback(
+      fault
+        ? `Fault set: ${faultDetails(fault).label}.`
+        : 'Fault removed. Choose a fault before previewing or exporting.',
+    );
+  };
   const showTab = (next: Tab) => {
     setTab(next);
     requestAnimationFrame(() => {
@@ -198,6 +215,7 @@ export default function Inspector({
                       aria-label={`Remove hint ${i + 1}`}
                       onClick={() => {
                         update({ hints: lab.hints.filter((_, j) => j !== i) });
+                        onFeedback(`Hint ${i + 1} removed.`);
                         requestAnimationFrame(() => document.getElementById('add-hint')?.focus());
                       }}
                     >
@@ -211,6 +229,7 @@ export default function Inspector({
                   disabled={lab.hints.length >= 3}
                   onClick={() => {
                     update({ hints: [...lab.hints, ''] });
+                    onFeedback(`Hint ${lab.hints.length + 1} added.`);
                     requestAnimationFrame(() =>
                       document.getElementById(`field-hint-${lab.hints.length}`)?.focus(),
                     );
@@ -234,12 +253,11 @@ export default function Inspector({
               <select
                 value={lab.fault === null || isWire(lab.fault) ? 'open-wire' : lab.fault}
                 onChange={(e) =>
-                  update({
-                    fault:
-                      e.target.value === 'open-wire'
-                        ? (selected ?? 'hold')
-                        : (e.target.value as ContactFault),
-                  })
+                  changeFault(
+                    e.target.value === 'open-wire'
+                      ? (selected ?? 'hold')
+                      : (e.target.value as ContactFault),
+                  )
                 }
               >
                 <option value="open-wire">Open conductor · choose W1–W5</option>
@@ -292,7 +310,7 @@ export default function Inspector({
                     ) : (
                       <button
                         className="button fault-button full"
-                        onClick={() => update({ fault: selected })}
+                        onClick={() => changeFault(selected)}
                       >
                         <Plus size={16} />
                         Place open fault here
@@ -317,7 +335,7 @@ export default function Inspector({
                         className="icon-button"
                         aria-label="Remove fault"
                         title="Remove fault"
-                        onClick={() => update({ fault: null })}
+                        onClick={() => changeFault(null)}
                       >
                         <Trash2 size={16} />
                       </button>
@@ -337,12 +355,21 @@ export default function Inspector({
                   className="button secondary full"
                   title="Replace the title, objective, instructions, and hints. Undo restores your text."
                   onClick={() => {
-                    if (lab.fault && !isWire(lab.fault)) update(contactLessons[lab.fault]);
+                    if (!lesson) return;
+                    if (lessonApplied) {
+                      onFeedback(
+                        'Suggested lesson text is already applied. Edit it in Lab details.',
+                      );
+                      return;
+                    }
+                    update(lesson);
+                    onFeedback('Lesson text updated: title, objective, instructions, and hints.');
                   }}
                 >
-                  Use suggested lesson text
+                  {lessonApplied && <Check size={16} />}
+                  {lessonApplied ? 'Suggested text applied' : 'Use suggested lesson text'}
                 </button>
-                <button className="text-button" onClick={() => update({ fault: null })}>
+                <button className="text-button" onClick={() => changeFault(null)}>
                   <Trash2 size={15} /> Remove fault
                 </button>
               </div>

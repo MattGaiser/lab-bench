@@ -26,6 +26,7 @@ type Props = {
   onSample: () => void;
   onApply: (lab: Lab) => void;
   onImport: () => void;
+  onFeedback: (message: string) => void;
 };
 type Page = 'guide' | 'choice' | 'compose' | 'review';
 export default function StartPage({
@@ -37,6 +38,7 @@ export default function StartPage({
   onSample,
   onApply,
   onImport,
+  onFeedback,
 }: Props) {
   const [page, setPage] = useState<Page>('guide');
   const [step, setStep] = useState(0);
@@ -300,6 +302,9 @@ export default function StartPage({
                           'Create a 15-minute beginner lab about a pump that runs only while START is held. Teach the role of the holding contact and include two hints.',
                         );
                         input.current?.focus();
+                        onFeedback(
+                          'Example added. Edit the lesson request, then choose Draft my lab.',
+                        );
                       }}
                     >
                       Use this example
@@ -325,6 +330,10 @@ export default function StartPage({
                           request.current?.abort();
                           request.current = null;
                           setBusy(false);
+                          onFeedback(
+                            'Drafting canceled. Your lesson request is ready to edit or try again.',
+                          );
+                          requestAnimationFrame(() => input.current?.focus());
                         }}
                       >
                         <LoaderCircle size={16} className="spin" />

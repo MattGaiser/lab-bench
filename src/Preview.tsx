@@ -23,7 +23,15 @@ import {
 } from './domain';
 import type { CircuitAction, ContactId, FaultCondition, Lab, TargetId } from './domain';
 
-export default function Preview({ lab, onClose }: { lab: Lab; onClose: () => void }) {
+export default function Preview({
+  lab,
+  onClose,
+  onFeedback,
+}: {
+  lab: Lab;
+  onClose: () => void;
+  onFeedback: (message: string) => void;
+}) {
   const headingRef = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
     headingRef.current?.focus({ preventScroll: true });
@@ -129,12 +137,14 @@ export default function Preview({ lab, onClose }: { lab: Lab; onClose: () => voi
               <p className="briefing-copy">{lab.briefing}</p>
               {lab.hints.length > 0 && (
                 <div className="hints-box">
-                  {lab.hints.slice(0, hints).map((hint, i) => (
-                    <p key={i}>
-                      <Lightbulb size={15} />
-                      <span>{hint}</span>
-                    </p>
-                  ))}
+                  <div role="log" aria-label="Revealed hints">
+                    {lab.hints.slice(0, hints).map((hint, i) => (
+                      <p key={i}>
+                        <Lightbulb size={15} />
+                        <span>{hint}</span>
+                      </p>
+                    ))}
+                  </div>
                   <button
                     className="text-button"
                     disabled={hints >= lab.hints.length}
@@ -198,6 +208,7 @@ export default function Preview({ lab, onClose }: { lab: Lab; onClose: () => voi
               selected && !isWire(selected) ? (selected.slice(8) as ContactId) : null
             }
             onSelectContact={(contact) => selectTarget(`contact-${contact}`)}
+            onFeedback={onFeedback}
             preview
             state={state}
           />
@@ -241,11 +252,16 @@ export default function Preview({ lab, onClose }: { lab: Lab; onClose: () => voi
               className="button secondary full"
               disabled={!selected || state.powered}
               onClick={() => {
-                if (selected && !state.powered)
+                if (selected && !state.powered) {
+                  if (inspected[selected])
+                    onFeedback(
+                      `${targetDetails(selected).label} checked again: ${inspectTarget(selected, lab.fault).label}.`,
+                    );
                   setInspected((old) => ({
                     ...old,
                     [selected]: inspectTarget(selected, lab.fault),
                   }));
+                }
               }}
             >
               <Search size={16} />
@@ -301,15 +317,21 @@ export default function Preview({ lab, onClose }: { lab: Lab; onClose: () => voi
             <button
               className="button primary full"
               disabled={!selected || !explanation.trim() || (!isWire(selected) && !condition)}
-              onClick={() =>
-                setAnswer(
+              onClick={() => {
+                const result =
                   lab.fault &&
-                    selected === faultDetails(lab.fault).target &&
-                    (isWire(selected) || condition === faultDetails(lab.fault).condition)
+                  selected === faultDetails(lab.fault).target &&
+                  (isWire(selected) || condition === faultDetails(lab.fault).condition)
                     ? 'correct'
-                    : 'wrong',
-                )
-              }
+                    : 'wrong';
+                if (answer === result)
+                  onFeedback(
+                    result === 'correct'
+                      ? 'Diagnosis checked again: the selected fault matches.'
+                      : 'Diagnosis checked again: the selected item or condition does not match the fault.',
+                  );
+                setAnswer(result);
+              }}
             >
               Check diagnosis
               <ChevronRight size={16} />
@@ -354,7 +376,11 @@ export default function Preview({ lab, onClose }: { lab: Lab; onClose: () => voi
               <button
                 className="text-button"
                 aria-label="Clear observations"
-                onClick={() => setObservations([])}
+                disabled={observations.length === 0}
+                onClick={() => {
+                  setObservations([]);
+                  onFeedback('Observation log cleared.');
+                }}
               >
                 <RotateCcw size={14} /> Clear observations
               </button>

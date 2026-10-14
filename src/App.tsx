@@ -1,4 +1,4 @@
-import { useEffect, useReducer, useRef, useState } from 'react';
+import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import {
   ArrowDownToLine,
   ArrowUpFromLine,
@@ -18,6 +18,8 @@ import CircuitCanvas from './CircuitCanvas';
 import Preview from './Preview';
 import Inspector from './Inspector';
 import StartPage from './StartPage';
+import Notification from './Notification';
+import type { Notice } from './Notification';
 import type { Tab } from './Inspector';
 import {
   checkLab,
@@ -70,10 +72,29 @@ export default function App() {
     initial.status === 'new' ? 'saving' : initial.status,
   );
   const [saveGeneration, retrySave] = useReducer((n) => n + 1, 0);
+  const saveRequested = useRef(false);
   const [selected, setSelected] = useState<WireId | null>(isWire(lab.fault) ? lab.fault : 'hold');
   const [tab, setTab] = useState<Tab>('fault');
   const [preview, setPreview] = useState<Lab | null>(null);
-  const [message, setMessage] = useState<{ text: string; error?: boolean } | null>(null);
+  const [message, setNotice] = useState<Notice | null>(null);
+  const noticeId = useRef(0);
+  const setMessage = useCallback((next: Omit<Notice, 'id'> | null) => {
+    setNotice(next ? { ...next, id: ++noticeId.current } : null);
+  }, []);
+  const feedback = useCallback((text: string) => setMessage({ text }), [setMessage]);
+  const dismissMessage = useCallback(() => setMessage(null), [setMessage]);
+  const changeHistory = useCallback(
+    (direction: 'undo' | 'redo') => {
+      const available = direction === 'undo' ? history.past.length : history.future.length;
+      if (!available) {
+        feedback(direction === 'undo' ? 'Nothing to undo.' : 'Nothing to redo.');
+        return;
+      }
+      dispatch({ type: direction });
+      feedback(direction === 'undo' ? 'Last edit undone.' : 'Last edit restored.');
+    },
+    [history.past.length, history.future.length, feedback],
+  );
   const aboutRef = useRef<HTMLDialogElement>(null);
   const aboutTrigger = useRef<HTMLButtonElement | null>(null);
   const editorHeading = useRef<HTMLHeadingElement>(null);
@@ -103,20 +124,34 @@ export default function App() {
     let canceled = false;
     setSaveStatus('saving');
     const timeout = window.setTimeout(async () => {
+      const finish = (status: SaveStatus) => {
+        setSaveStatus(status);
+        if (!saveRequested.current) return;
+        saveRequested.current = false;
+        setMessage({
+          text:
+            status === 'saved'
+              ? 'Draft saved on this device.'
+              : status === 'conflict'
+                ? 'Saving stopped because another tab changed the draft. Choose which copy to keep.'
+                : 'Saving failed. Download this draft to keep your changes.',
+          error: status !== 'saved',
+        });
+      };
       const commit = () => {
         if (canceled) return;
         const result = saveDraft(storage, lab, lastRaw.current);
         if (result.ok) {
           lastRaw.current = result.raw;
           setSavedLab(lab);
-          setSaveStatus('saved');
-        } else setSaveStatus(result.reason);
+          finish('saved');
+        } else finish(result.reason);
       };
       try {
         if (navigator.locks) await navigator.locks.request(DRAFT_KEY, commit);
         else commit();
       } catch {
-        if (!canceled) setSaveStatus('unavailable');
+        if (!canceled) finish('unavailable');
       }
     }, 300);
     return () => {
@@ -146,17 +181,12 @@ export default function App() {
         return;
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
         e.preventDefault();
-        dispatch({ type: e.shiftKey ? 'redo' : 'undo' });
+        changeHistory(e.shiftKey ? 'redo' : 'undo');
       }
     };
     window.addEventListener('keydown', keys);
     return () => window.removeEventListener('keydown', keys);
-  }, [preview, screen]);
-  useEffect(() => {
-    if (!message || message.error) return;
-    const timer = setTimeout(() => setMessage(null), 5000);
-    return () => clearTimeout(timer);
-  }, [message]);
+  }, [preview, screen, changeHistory]);
   useEffect(() => {
     const warn = (event: BeforeUnloadEvent) => {
       if (unloadState.current.status !== 'saved' && unloadState.current.hasOpened) {
@@ -252,10 +282,12 @@ export default function App() {
   const keepThisCopy = () => {
     try {
       lastRaw.current = storage.getItem(DRAFT_KEY);
+      saveRequested.current = true;
       setSaveStatus('saving');
       retrySave();
     } catch {
       setSaveStatus('unavailable');
+      setMessage({ text: 'Saving failed. Download this draft to keep your changes.', error: true });
     }
   };
   const previewLab = () => {
@@ -332,6 +364,7 @@ export default function App() {
           onResume={openEditor}
           guideRequest={guideRequest}
           onImport={() => importRef.current?.click()}
+          onFeedback={feedback}
           onSample={() => {
             dispatch({ type: 'replace', lab: exampleLab() });
             setSelected('hold');
@@ -353,6 +386,7 @@ export default function App() {
         (preview ? (
           <Preview
             lab={preview}
+            onFeedback={feedback}
             onClose={() => {
               setPreview(null);
               window.scrollTo({ top: 0 });
@@ -453,7 +487,12 @@ export default function App() {
                   <div className="recovery-actions">
                     <button
                       className="text-button"
-                      onClick={() => download(serializeLab(lab), 'lab-bench-draft.json')}
+                      onClick={() => {
+                        download(serializeLab(lab), 'lab-bench-draft.json');
+                        feedback(
+                          'Draft download started. Keep this file to preserve your changes.',
+                        );
+                      }}
                     >
                       Download this draft
                     </button>
@@ -471,7 +510,10 @@ export default function App() {
                       <>
                         <button
                           className="text-button"
-                          onClick={() => download(lastRaw.current ?? '', 'lab-bench-recovery.txt')}
+                          onClick={() => {
+                            download(lastRaw.current ?? '', 'lab-bench-recovery.txt');
+                            feedback('Recovery file download started.');
+                          }}
                         >
                           Download stored data
                         </button>
@@ -481,7 +523,13 @@ export default function App() {
                       </>
                     )}
                     {saveStatus === 'unavailable' && (
-                      <button className="text-button" onClick={() => retrySave()}>
+                      <button
+                        className="text-button"
+                        onClick={() => {
+                          saveRequested.current = true;
+                          retrySave();
+                        }}
+                      >
                         Retry saving
                       </button>
                     )}
@@ -501,6 +549,7 @@ export default function App() {
                 endGroup={endGroup}
                 previewLab={previewLab}
                 exportLab={exportLab}
+                onFeedback={feedback}
                 onLoadSample={() => {
                   dispatch({ type: 'replace', lab: exampleLab() });
                   setSelected('hold');
@@ -513,8 +562,9 @@ export default function App() {
                   selected={selected}
                   onSelect={selectWire}
                   onMove={(id, p) => update({ positions: { ...lab.positions, [id]: p } })}
-                  onUndo={() => dispatch({ type: 'undo' })}
-                  onRedo={() => dispatch({ type: 'redo' })}
+                  onUndo={() => changeHistory('undo')}
+                  onRedo={() => changeHistory('redo')}
+                  onFeedback={feedback}
                   canUndo={history.past.length > 0}
                   canRedo={history.future.length > 0}
                 />
@@ -547,22 +597,7 @@ export default function App() {
           e.target.value = '';
         }}
       />
-      {message && (
-        <div
-          className={`toast ${message.error ? 'error' : ''}`}
-          role={message.error ? 'alert' : 'status'}
-        >
-          {message.error ? <TriangleAlert size={18} /> : <Check size={18} />}
-          <span>{message.text}</span>
-          <button
-            className="icon-button"
-            aria-label="Dismiss notification"
-            onClick={() => setMessage(null)}
-          >
-            <X size={16} />
-          </button>
-        </div>
-      )}
+      <Notification message={message} dismiss={dismissMessage} />
       <dialog
         ref={aboutRef}
         className="about-dialog"
