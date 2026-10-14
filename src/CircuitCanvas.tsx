@@ -107,81 +107,79 @@ export default function CircuitCanvas({
       aria-label="Circuit workbench"
     >
       <div className="canvas-header">
-        <div>
-          <h2>Start / stop with seal-in</h2>
-        </div>
-      </div>
-      <div className="canvas-toolbar">
-        <div className="tool-group">
-          <button
-            className={`icon-button ${!hand ? 'active' : ''}`}
-            aria-label="Select tool"
-            aria-pressed={!hand}
-            title="Select conductors or move components"
-            onClick={() => setHand(false)}
-          >
-            <MousePointer2 size={17} />
-          </button>
-          <button
-            className={`icon-button ${hand ? 'active' : ''}`}
-            aria-label="Pan tool"
-            aria-pressed={hand}
-            title="Drag the background to pan"
-            onClick={() => setHand(true)}
-          >
-            <Hand size={17} />
-          </button>
-          {!preview && (
-            <>
-              <span className="tool-divider" />
-              <button
-                className="icon-button"
-                aria-label="Undo"
-                title="Undo · Ctrl/⌘ Z"
-                disabled={!canUndo}
-                onClick={onUndo}
-              >
-                <Undo2 size={17} />
-              </button>
-              <button
-                className="icon-button"
-                aria-label="Redo"
-                title="Redo · Ctrl/⌘ Shift Z"
-                disabled={!canRedo}
-                onClick={onRedo}
-              >
-                <Redo2 size={17} />
-              </button>
-            </>
-          )}
-        </div>
-        <div className="tool-group">
-          <button
-            className="icon-button"
-            aria-label="Zoom out"
-            disabled={zoom <= 0.8}
-            onClick={() => setZoom((v) => Math.max(0.8, +(v - 0.2).toFixed(1)))}
-          >
-            <Minus size={16} />
-          </button>
-          <span className="zoom-label">{Math.round(zoom * 100)}%</span>
-          <button
-            className="icon-button"
-            aria-label="Zoom in"
-            disabled={zoom >= 1.8}
-            onClick={() => setZoom((v) => Math.min(1.8, +(v + 0.2).toFixed(1)))}
-          >
-            <Plus size={16} />
-          </button>
-          <span className="tool-divider" />
-          <button
-            className="icon-button"
-            aria-label="Reset zoom and pan"
-            title="Reset zoom and pan"
-            onClick={resetView}
-          >
-            <Expand size={16} />
-          </button>
+        <h2>Start / stop with seal-in</h2>
+        <div className="canvas-toolbar">
+          <div className="tool-group">
+            <button
+              className={`icon-button ${!hand ? 'active' : ''}`}
+              aria-label="Select tool"
+              aria-pressed={!hand}
+              title="Select conductors or move components"
+              onClick={() => setHand(false)}
+            >
+              <MousePointer2 size={17} />
+            </button>
+            <button
+              className={`icon-button ${hand ? 'active' : ''}`}
+              aria-label="Pan tool"
+              aria-pressed={hand}
+              title="Drag the background to pan"
+              onClick={() => setHand(true)}
+            >
+              <Hand size={17} />
+            </button>
+            {!preview && (
+              <>
+                <span className="tool-divider" />
+                <button
+                  className="icon-button"
+                  aria-label="Undo"
+                  title="Undo · Ctrl/⌘ Z"
+                  disabled={!canUndo}
+                  onClick={onUndo}
+                >
+                  <Undo2 size={17} />
+                </button>
+                <button
+                  className="icon-button"
+                  aria-label="Redo"
+                  title="Redo · Ctrl/⌘ Shift Z"
+                  disabled={!canRedo}
+                  onClick={onRedo}
+                >
+                  <Redo2 size={17} />
+                </button>
+              </>
+            )}
+          </div>
+          <div className="tool-group">
+            <button
+              className="icon-button"
+              aria-label="Zoom out"
+              disabled={zoom <= 0.8}
+              onClick={() => setZoom((v) => Math.max(0.8, +(v - 0.2).toFixed(1)))}
+            >
+              <Minus size={16} />
+            </button>
+            <span className="zoom-label">{Math.round(zoom * 100)}%</span>
+            <button
+              className="icon-button"
+              aria-label="Zoom in"
+              disabled={zoom >= 1.8}
+              onClick={() => setZoom((v) => Math.min(1.8, +(v + 0.2).toFixed(1)))}
+            >
+              <Plus size={16} />
+            </button>
+            <span className="tool-divider" />
+            <button
+              className="icon-button"
+              aria-label="Reset zoom and pan"
+              title="Reset zoom and pan"
+              onClick={resetView}
+            >
+              <Expand size={16} />
+            </button>
+          </div>
         </div>
       </div>
       <p className="canvas-scroll-hint">Scroll sideways to explore the circuit →</p>

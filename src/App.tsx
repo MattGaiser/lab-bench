@@ -376,12 +376,10 @@ export default function App() {
             </div>
             <div className="page-heading">
               <div className="heading-copy">
-                <div className="heading-eyebrow">
-                  <span className="draft-pill">Draft exercise</span>
-                </div>
                 <h1 ref={editorHeading} tabIndex={-1}>
                   {lab.title.trim() || 'Untitled exercise'}
                 </h1>
+                <span className="draft-pill">Draft exercise</span>
               </div>
               <div className="heading-actions">
                 <button id="preview-main" className="button primary" onClick={previewLab}>

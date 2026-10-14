@@ -96,12 +96,18 @@ button {
 }
 .brand {
   display: flex;
+  min-width: 0;
+  max-width: 100%;
   align-items: center;
   gap: 12px;
   text-decoration: none;
   font-size: 25px;
   letter-spacing: -1.3px;
   font-weight: 780;
+}
+.brand > span:last-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 .brand-light {
   font-weight: 500;
@@ -171,6 +177,7 @@ button {
 }
 .breadcrumbs {
   display: flex;
+  flex-wrap: wrap;
   gap: 9px;
   align-items: center;
   font-size: 12px;
@@ -190,12 +197,14 @@ button {
 }
 .heading-copy {
   min-width: 0;
-}
-.heading-eyebrow {
+  flex: 1 1 440px;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 15px;
-  margin-bottom: 10px;
+  gap: 8px 10px;
+}
+.heading-copy h1 {
+  min-width: 0;
 }
 .overline {
   display: block;
@@ -206,6 +215,7 @@ button {
   color: var(--muted);
 }
 .draft-pill {
+  flex-shrink: 0;
   padding: 3px 7px;
   border: 1px solid #d9dfd3;
   border-radius: 4px;
@@ -308,7 +318,7 @@ h1 {
 }
 .workbench-meta {
   border-top: 1px solid var(--line);
-  padding: 16px 0;
+  padding: 12px 0;
   display: flex;
   justify-content: space-between;
   gap: 20px;
@@ -373,22 +383,27 @@ h1 {
 }
 .canvas-header {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   gap: 12px;
   align-items: center;
-  padding: 22px 23px 20px;
+  padding: 14px 20px;
+  border-bottom: 1px solid #e4e8df;
 }
 .canvas-header h2 {
+  flex: 1 1 210px;
   font-size: 15px;
   letter-spacing: -0.3px;
-  margin-top: 5px;
 }
 .canvas-toolbar {
   display: flex;
+  flex: 1 1 340px;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 20px;
-  border-block: 1px solid #e4e8df;
+  gap: 8px;
+  max-width: 380px;
+  min-width: 0;
 }
 .canvas-movement {
   padding: 12px 20px;
@@ -767,6 +782,7 @@ h1 {
 }
 .inspector-tabs {
   display: flex;
+  flex-wrap: wrap;
   border-bottom: 1px solid var(--line);
   padding: 0 16px;
   gap: 6px;
@@ -1647,14 +1663,8 @@ h1 {
     font-size: 11px;
     margin-bottom: 23px;
   }
-  .heading-eyebrow {
-    gap: 9px;
-  }
   .overline {
     font-size: 9px;
-  }
-  .heading-eyebrow .overline {
-    letter-spacing: 1.3px;
   }
   h1 {
     font-size: 29px;
@@ -1701,11 +1711,6 @@ h1 {
   }
   .canvas-header h2 {
     font-size: 12px;
-  }
-  .canvas-toolbar {
-    padding: 7px 10px;
-    flex-wrap: wrap;
-    gap: 8px;
   }
   .tool-group {
     gap: 2px;
@@ -2272,16 +2277,27 @@ h1 {
 }
 /* Keep the work next to its controls. */
 .editor-layout {
-  grid-template-columns: 360px minmax(0, 1fr);
+  grid-template-columns: clamp(320px, 27vw, 420px) minmax(0, 1fr);
+}
+.author-page {
+  padding-top: 20px;
 }
 .author-page .page-heading {
-  margin-bottom: 18px;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 24px;
+  margin-bottom: 12px;
+}
+.author-page .heading-actions {
+  width: auto;
+  margin-left: auto;
 }
 .author-page h1 {
   font-size: 29px;
 }
 .breadcrumbs {
-  margin-bottom: 20px;
+  margin-bottom: 14px;
 }
 .inspector-title {
   padding-top: 18px;
@@ -2323,11 +2339,6 @@ h1 {
 }
 .tour-launch {
   font-size: 11px;
-}
-@media (max-width: 1100px) {
-  .editor-layout {
-    grid-template-columns: 320px minmax(0, 1fr);
-  }
 }
 @media (max-width: 900px) {
   .editor-layout {
@@ -2461,8 +2472,8 @@ h1 {
   .author-page h1 {
     font-size: 25px;
   }
-  .heading-eyebrow {
-    margin-bottom: 8px;
+  .author-page .heading-actions {
+    width: 100%;
   }
   .preview-brief {
     padding: 18px;
