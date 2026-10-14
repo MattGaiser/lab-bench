@@ -298,7 +298,6 @@ export default function App() {
         <div className="header-divider" />
         <span className="workspace-name">Instructor workspace</span>
         <div className="header-right">
-          <span className="independent-tag">Independent work sample</span>
           <button
             id="show-tour"
             aria-label="Show me around"
@@ -523,7 +522,6 @@ export default function App() {
               </div>
             </div>
             <footer className="page-footer">
-              <span>Export a lab file to reuse this exercise on another device.</span>
               <button
                 className="text-button small"
                 onClick={(event) => {

@@ -151,11 +151,6 @@ button {
   margin-left: auto;
   gap: 20px;
 }
-.independent-tag {
-  font-size: 12px;
-  letter-spacing: 0.1px;
-  color: var(--muted);
-}
 .avatar {
   display: flex;
   align-items: center;
@@ -350,8 +345,7 @@ h1 {
   font-size: 10px;
   color: var(--muted);
 }
-.save-state i,
-.status-dot {
+.save-state i {
   display: inline-block;
   width: 5px;
   height: 5px;
@@ -388,19 +382,6 @@ h1 {
   font-size: 15px;
   letter-spacing: -0.3px;
   margin-top: 5px;
-}
-.model-badge {
-  font-size: 10px;
-  font-weight: 550;
-  color: var(--muted);
-  border: 1px solid #dde4d6;
-  background: #f7f8f1;
-  border-radius: 4px;
-  padding: 5px 8px;
-  white-space: nowrap;
-}
-.model-badge span {
-  padding: 0 3px;
 }
 .canvas-toolbar {
   display: flex;
@@ -464,20 +445,6 @@ h1 {
 .canvas-surface.hand-tool {
   cursor: grab;
 }
-.board-caption {
-  position: absolute;
-  top: 18px;
-  left: 24px;
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  z-index: 1;
-  font-size: 9px;
-  letter-spacing: 1.2px;
-  font-weight: 600;
-  color: #64745c;
-  pointer-events: none;
-}
 .circuit-svg {
   width: 100%;
   display: block;
@@ -502,7 +469,7 @@ h1 {
 }
 .canvas-bottom-note {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   gap: 10px;
   padding: 0 20px 17px;
@@ -696,10 +663,6 @@ h1 {
   border-radius: 50%;
   display: inline-block;
   background: #526d54;
-}
-.legend-tail {
-  margin-left: auto;
-  font-size: 9px;
 }
 .below-canvas {
   display: flex;
@@ -1116,7 +1079,7 @@ h1 {
   border-top: 1px solid #dfe4d7;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   padding: 19px 0 24px;
   font-size: 10px;
   color: var(--muted);
@@ -1336,7 +1299,7 @@ h1 {
 .station-title {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   margin-bottom: 16px;
 }
 .coil-state {
@@ -1562,18 +1525,11 @@ h1 {
     padding: 10px;
     font-size: 11px;
   }
-  .legend-tail {
-    display: none !important;
-  }
   .canvas-header {
     padding: 18px;
   }
   .canvas-header h2 {
     font-size: 13px;
-  }
-  .canvas-header .model-badge {
-    font-size: 9px;
-    padding: 4px;
   }
   .workflow-strip {
     gap: 7px;
@@ -1661,9 +1617,6 @@ h1 {
   .preview-heading .duration {
     margin-top: 0;
   }
-  .preview-top .model-badge {
-    display: none;
-  }
   .preview-aside {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -1671,9 +1624,6 @@ h1 {
   }
   .preview-aside .observations {
     grid-column: 1 / -1;
-  }
-  .canvas-legend .legend-tail {
-    display: flex !important;
   }
   .control-hint {
     display: block;
@@ -1702,8 +1652,7 @@ h1 {
     width: 30px;
   }
   .workspace-name,
-  .header-divider,
-  .independent-tag {
+  .header-divider {
     display: none;
   }
   .header-right {
@@ -1772,12 +1721,6 @@ h1 {
   .canvas-header h2 {
     font-size: 12px;
   }
-  .canvas-header .model-badge {
-    font-size: 7px;
-    white-space: normal;
-    max-width: 90px;
-    text-align: center;
-  }
   .canvas-toolbar {
     padding: 7px 10px;
     flex-wrap: wrap;
@@ -1796,20 +1739,10 @@ h1 {
     min-width: 700px;
     min-height: 396px;
   }
-  .board-caption {
-    top: 15px;
-    left: 15px;
-    font-size: 7px;
-    letter-spacing: 0.7px;
-  }
   .canvas-bottom-note {
     padding: 0 13px 12px;
     align-items: flex-end;
     gap: 10px;
-  }
-  .canvas-bottom-note > span {
-    max-width: 200px;
-    line-height: 1.7;
   }
   .canvas-bottom-note .text-button {
     font-size: 9px !important;
@@ -1819,9 +1752,6 @@ h1 {
     gap: 11px;
     font-size: 9px;
     flex-wrap: wrap;
-  }
-  .canvas-legend .legend-tail {
-    display: none !important;
   }
   .below-canvas {
     padding: 16px 14px;
@@ -1924,9 +1854,6 @@ h1 {
   .station-title {
     gap: 8px;
   }
-  .station-title .overline {
-    letter-spacing: 1px;
-  }
   .coil-state {
     font-size: 10px;
   }
@@ -1947,7 +1874,6 @@ h1 {
 /* One decision per screen. */
 .guided-entry .workspace-name,
 .guided-entry .header-divider,
-.guided-entry .independent-tag,
 .guided-entry .tour-launch,
 .avatar {
   display: none;
@@ -2420,9 +2346,6 @@ h1 {
 @media (max-width: 1100px) {
   .editor-layout {
     grid-template-columns: 320px minmax(0, 1fr);
-  }
-  .independent-tag {
-    display: none;
   }
 }
 @media (max-width: 900px) {

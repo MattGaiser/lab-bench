@@ -87,7 +87,6 @@ export default function Preview({ lab, onClose }: { lab: Lab; onClose: () => voi
           <ArrowLeft size={16} /> Back to authoring
         </button>
         <span className="preview-label">APPRENTICE PREVIEW</span>
-        <span className="model-badge">Practice attempt · stays in this session</span>
       </div>
       <div className="page-heading preview-heading">
         <div>
@@ -134,7 +133,6 @@ export default function Preview({ lab, onClose }: { lab: Lab; onClose: () => voi
           </details>
           <div className="control-station">
             <div className="station-title">
-              <span className="overline">02 / OBSERVE</span>
               <span className={`coil-state ${state.coilOn ? 'on' : ''}`} role="status">
                 <i />
                 K1 {state.coilOn ? 'energized' : 'de-energized'}
@@ -193,7 +191,6 @@ export default function Preview({ lab, onClose }: { lab: Lab; onClose: () => voi
         </div>
         <aside className="preview-aside">
           <section className="side-card inspect-card">
-            <span className="overline">03 / INSPECT</span>
             <h3>
               {selected
                 ? `${wireInfo[selected].tag} · ${wireInfo[selected].name}`
@@ -247,7 +244,6 @@ export default function Preview({ lab, onClose }: { lab: Lab; onClose: () => voi
               </div>
             )}
             <div className="diagnosis-heading">
-              <span className="overline">04 / EXPLAIN</span>
               <p>Which conductor explains the symptom?</p>
             </div>
             <label className="field explanation-field">

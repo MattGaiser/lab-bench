@@ -110,9 +110,6 @@ export default function CircuitCanvas({
         <div>
           <h2>Start / stop with seal-in</h2>
         </div>
-        <span className="model-badge">
-          24 V DC <span>·</span> control model
-        </span>
       </div>
       <div className="canvas-toolbar">
         <div className="tool-group">
@@ -189,10 +186,6 @@ export default function CircuitCanvas({
       </div>
       <p className="canvas-scroll-hint">Scroll sideways to explore the circuit →</p>
       <div className={`canvas-surface ${hand ? 'hand-tool' : ''}`}>
-        <div className="board-caption">
-          <span className="status-dot" />
-          {preview ? 'APPRENTICE VIEW · FAULT HIDDEN' : 'INSTRUCTOR VIEW · FAULT VISIBLE'}
-        </div>
         <div
           className="diagram-viewport"
           tabIndex={0}
@@ -438,11 +431,6 @@ export default function CircuitCanvas({
           </svg>
         </div>
         <div className="canvas-bottom-note">
-          <span>
-            {preview
-              ? 'Select a conductor to inspect or identify it.'
-              : 'Select a conductor to set the fault. Move components by dragging or with the controls below.'}
-          </span>
           <button className="text-button small" onClick={resetView}>
             <RotateCcw size={13} /> Reset view
           </button>
@@ -521,7 +509,6 @@ export default function CircuitCanvas({
         <span>
           <i className="legend-dot" /> Connected junction
         </span>
-        <span className="legend-tail">Fixed topology · movable layout</span>
       </div>
     </section>
   );
