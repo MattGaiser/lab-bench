@@ -6,7 +6,6 @@ import {
   Power,
   RotateCcw,
   Search,
-  Zap,
   Clock3,
   ChevronRight,
 } from 'lucide-react';
@@ -181,13 +180,6 @@ export default function Preview({ lab, onClose }: { lab: Lab; onClose: () => voi
             preview
             state={state}
           />
-          <div className="model-note">
-            <Zap size={16} />
-            <p>
-              <strong>Conceptual control model.</strong> Ideal contacts and one open conductor. The
-              motor power circuit, protection, and real measurements are outside this exercise.
-            </p>
-          </div>
         </div>
         <aside className="preview-aside">
           <section className="side-card inspect-card">
@@ -240,7 +232,6 @@ export default function Preview({ lab, onClose }: { lab: Lab; onClose: () => voi
                 role="status"
               >
                 {inspected[selected] ? 'Intact conductor' : 'Open conductor'}
-                <small>Model inspection · not a meter reading</small>
               </div>
             )}
             <div className="diagnosis-heading">
@@ -275,8 +266,8 @@ export default function Preview({ lab, onClose }: { lab: Lab; onClose: () => voi
                     <div>
                       <strong>Fault located.</strong>
                       <p>
-                        Your selected conductor matches the fault. Your written explanation is ready
-                        for an instructor to discuss; it is not automatically graded.
+                        Your selected conductor matches the fault. Discuss your explanation with
+                        your instructor.
                       </p>
                     </div>
                   </>

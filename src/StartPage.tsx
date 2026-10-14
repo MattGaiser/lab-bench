@@ -399,7 +399,7 @@ export default function StartPage({
                     </dd>
                   </div>
                   <div>
-                    <dt>What the model will do</dt>
+                    <dt>Expected circuit behavior</dt>
                     <dd>{expectedSymptom(proposal.lab)}</dd>
                   </div>
                 </dl>
@@ -429,8 +429,7 @@ export default function StartPage({
                 <p className="proposal-note">
                   {hasDraft
                     ? `Replaces “${lab.title || 'Untitled exercise'}”. Undo brings it back.`
-                    : 'Opens the editor with the circuit, fault, and brief set up.'}{' '}
-                  Review the wording and test the apprentice experience before sharing.
+                    : 'Opens the editor with the circuit, fault, and brief set up.'}
                 </p>
               </>
             )}

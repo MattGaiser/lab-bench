@@ -591,13 +591,6 @@ export default function App() {
         </p>
         <div className="about-facts">
           <div>
-            <strong>Model scope</strong>
-            <p>
-              Ideal control contacts and a contactor coil. No motor power, overload, electrical
-              safety assessment, or installation guidance.
-            </p>
-          </div>
-          <div>
             <strong>Your data</strong>
             <p>
               One draft is stored in this browser. Export files include the answer and can be
@@ -614,10 +607,6 @@ export default function App() {
             </p>
           </div>
         </div>
-        <p className="small muted">
-          Inspired by the public Dakota Prep instructor workflow. This sample is not affiliated with
-          Dakota Prep.
-        </p>
         <button className="button primary full" onClick={() => aboutRef.current?.close()}>
           Back to the workbench
         </button>
