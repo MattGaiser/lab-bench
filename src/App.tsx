@@ -23,6 +23,7 @@ import {
   checkLab,
   exampleLab,
   historyReducer,
+  isWire,
   MAX_FILE_BYTES,
   parseLab,
   serializeLab,
@@ -69,7 +70,7 @@ export default function App() {
     initial.status === 'new' ? 'saving' : initial.status,
   );
   const [saveGeneration, retrySave] = useReducer((n) => n + 1, 0);
-  const [selected, setSelected] = useState<WireId | null>(lab.fault ?? 'hold');
+  const [selected, setSelected] = useState<WireId | null>(isWire(lab.fault) ? lab.fault : 'hold');
   const [tab, setTab] = useState<Tab>('fault');
   const [preview, setPreview] = useState<Lab | null>(null);
   const [message, setMessage] = useState<{ text: string; error?: boolean } | null>(null);
@@ -223,7 +224,7 @@ export default function App() {
         );
       dispatch({ type: 'replace', lab: imported });
       openEditor();
-      setSelected(imported.fault);
+      setSelected(isWire(imported.fault) ? imported.fault : null);
       setTab('review');
       setMessage({ text: 'Lab imported. You can undo to return to the previous draft.' });
     } catch (error) {
@@ -339,7 +340,7 @@ export default function App() {
           }}
           onApply={(next) => {
             dispatch({ type: 'replace', lab: next });
-            setSelected(next.fault);
+            setSelected(isWire(next.fault) ? next.fault : null);
             setTab('details');
             openEditor();
             setMessage({
@@ -584,8 +585,8 @@ export default function App() {
           and check a focused troubleshooting exercise.
         </p>
         <p>
-          One start/stop circuit. One open conductor. A complete path from instructor intent to
-          apprentice preview and a portable lab file.
+          Build a start/stop troubleshooting exercise with an open conductor or a stuck contact. Go
+          from instructor intent to apprentice preview and a portable lab file.
         </p>
         <div className="about-facts">
           <div>

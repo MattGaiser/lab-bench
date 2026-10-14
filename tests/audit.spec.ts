@@ -46,11 +46,11 @@ for (const fault of WIRES) {
     await page.keyboard.up('Enter');
     await expect(start).toHaveAttribute('aria-pressed', 'false');
     await expect(stop).toHaveAttribute('aria-pressed', 'false');
-    await page.getByLabel('Conductor to inspect').selectOption(fault);
+    await page.getByLabel('Item to inspect').selectOption(fault);
     await expect(page.getByRole('button', { name: 'Inspect isolated conductor' })).toBeDisabled();
     await page.getByRole('button', { name: 'Isolate supply' }).click();
     for (const wire of WIRES) {
-      await page.getByLabel('Conductor to inspect').selectOption(wire);
+      await page.getByLabel('Item to inspect').selectOption(wire);
       await page.getByRole('button', { name: 'Inspect isolated conductor' }).click();
       await expect(page.locator('.inspection-result')).toContainText(
         wire === fault ? 'Open conductor' : 'Intact conductor',
@@ -59,12 +59,10 @@ for (const fault of WIRES) {
     await page.getByLabel('Your explanation').fill('   ');
     await expect(page.getByRole('button', { name: 'Check diagnosis' })).toBeDisabled();
     await page.getByLabel('Your explanation').fill('The open conductor interrupts the path to K1.');
-    await page
-      .getByLabel('Conductor to inspect')
-      .selectOption(WIRES.find((wire) => wire !== fault)!);
+    await page.getByLabel('Item to inspect').selectOption(WIRES.find((wire) => wire !== fault)!);
     await page.getByRole('button', { name: 'Check diagnosis' }).click();
     await expect(page.locator('.feedback.wrong')).toContainText('Compare your observations');
-    await page.getByLabel('Conductor to inspect').selectOption(fault);
+    await page.getByLabel('Item to inspect').selectOption(fault);
     await expect(page.locator('.feedback')).toHaveCount(0);
     await page.getByRole('button', { name: 'Check diagnosis' }).click();
     await expect(page.getByText('Fault located.')).toBeVisible();

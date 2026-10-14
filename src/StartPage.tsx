@@ -10,7 +10,7 @@ import {
   Sparkles,
   Unplug,
 } from 'lucide-react';
-import { checkLab, parseLab, wireInfo } from './domain';
+import { checkLab, parseLab, faultDetails } from './domain';
 import type { Lab } from './domain';
 import { expectedSymptom } from './scenario';
 import type { Proposal } from './scenario';
@@ -258,8 +258,8 @@ export default function StartPage({
                 </h1>
                 <p className="flow-intro">
                   Include the learners’ experience, the symptom to investigate, and the time
-                  available. AI will suggest a brief, one open-conductor fault, and optional hints.
-                  You’ll review them on the next screen.
+                  available. AI will suggest a brief, an open conductor or stuck contact, and
+                  optional hints. You’ll review them on the next screen.
                 </p>
                 {proposal && (
                   <p className="assistant-reply" role="status">
@@ -365,8 +365,7 @@ export default function StartPage({
                   <summary>What gets sent to AI?</summary>
                   <p>
                     Your request, the two most recent exchanges, and the previous proposal are sent
-                    to OpenAI when you submit. This builder supports one start/stop circuit with a
-                    single open conductor.
+                    to OpenAI when you submit.
                   </p>
                 </details>
               </>
@@ -394,8 +393,7 @@ export default function StartPage({
                     <dt>Instructor answer</dt>
                     <dd>
                       <Unplug size={15} />
-                      Open {wireInfo[proposal.lab.fault!].tag} ·{' '}
-                      {wireInfo[proposal.lab.fault!].name}
+                      {faultDetails(proposal.lab.fault!).label}
                     </dd>
                   </div>
                   <div>

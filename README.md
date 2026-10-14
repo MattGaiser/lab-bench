@@ -37,21 +37,23 @@ The server binds to loopback and checks Host/Origin before handling AI requests.
 ## Try the complete workflow
 
 1. The first card is **Let’s walk the bench**. Choose **Let’s begin** to read five illustrated explanations, or **Skip intro** to choose a starting point. Select **Explore a ready-made lab**, then **Open sample editor**. **Show me around** in the editor replays the guide. The cards leave saved drafts unchanged; AI proposals survive navigation through the guide or editor during the current page session.
-2. The sample has an open **W3 holding branch**. Select a conductor on the canvas or in the inspector; place or remove the fault. Drag a component to arrange the circuit, or focus it and use arrow keys. **Move and pan controls** offers a component selector and directional buttons for click/tap movement. Enter on a component opens these controls. Undo restores the whole drag; Escape cancels an active drag or pan.
+2. In **Fault setup → Fault type**, choose an open conductor, **START contact stuck open**, **START contact stuck closed**, or **STOP contact stuck closed**. The sample has an open **W3 holding branch**. Select a conductor on the canvas or in the inspector; place or remove the fault. Drag a component to arrange the circuit, or focus it and use arrow keys. **Move and pan controls** offers a component selector and directional buttons for click/tap movement. Enter on a component opens these controls. Undo restores the whole drag; Escape cancels an active drag or pan.
 3. **Lab details** groups fields into **Title and duration**, **Objective and instructions**, and optional **Hints**. Expand one section to edit it. The pinned **Next: choose a fault** button opens **Fault setup**, then **Next: review lab** opens the readiness checks. Checks that need attention expand automatically; selecting one opens and focuses the relevant field. The authoring panel comes before the canvas on small screens.
 4. Open **Apprentice preview**. Read the scenario, then use the controls above the circuit: turn on the supply and hold **START**. K1 energizes. Release START and it drops out because the holding branch is open. On small screens, scroll the diagram horizontally; **Reset zoom and pan** resets the canvas view.
-5. Select **W3**, isolate the supply, and inspect the conductor. Write an explanation and check the diagnosis. The selected conductor is checked automatically; the written explanation is left for an instructor to discuss.
+5. Select **W3**, isolate the supply, and inspect the conductor. Write an explanation and check the diagnosis. For contact faults, select a contact, use **Operate isolated contact**, and choose **Stuck open** or **Stuck closed** before checking. The selected item and contact condition are checked automatically; the written explanation is left for an instructor to discuss.
 6. Return to authoring and **Export lab**. Load the sample or change the exercise, then **Import** the exported file to restore the exact brief, hints, fault, and layout. Undo can restore the previous draft.
 
-The bundled [example lab](examples/holding-circuit.lab.json) can also be imported.
+For each contact fault, **Use suggested lesson text** supplies a matching title, objective, apprentice instructions, and two hints in one undoable edit. Choosing a fault alone preserves the text you have written.
+
+The bundled [example lab](examples/holding-circuit.lab.json) can also be imported; it demonstrates automatic migration from version 1. For AI drafting, also try “Create a lab where the pump starts as soon as power is switched on because START is stuck closed” or “Create a lab where STOP fails to open its contact.”
 
 ## What the sample covers
 
 - An interactive SVG canvas with conductor selection, bounded component layout, keyboard movement, pan, zoom, and undo/redo.
 - A paginated illustrated guide, a single starting choice, and separate AI composition and proposal-review screens with undo.
 - Instructor authoring, an explicit readiness check, and a preview of a stable lab snapshot.
-- A deterministic control-circuit model with five possible open-conductor locations.
-- A versioned lab file with strict input validation and atomic import into the editor.
+- A deterministic control-circuit model with five open-conductor locations and three stuck-contact faults.
+- Version 2 lab files with strict input validation and atomic import. Version 1 files and saved drafts upgrade automatically while preserving authored content and layout.
 - Local draft persistence, visible storage failures, recovery of unreadable data, and conflict handling between tabs.
 - Responsive authoring and apprentice views, keyboard controls, and automated accessibility checks.
 
@@ -59,7 +61,7 @@ The bundled [example lab](examples/holding-circuit.lab.json) can also be importe
 
 This is a **fixed-topology, ideal-contact control model**. The STOP contact is normally closed; START and the K1 auxiliary contact are normally open. K1 can remain energized through its auxiliary contact after START is released. Layout changes do not change connectivity. There are no numeric meter readings, motor power circuit, overload protection, arbitrary wiring, installation guidance, or safety assessment.
 
-Inspection exposes whether an isolated conductor is intact in the model. It does not simulate a multimeter or teach a physical isolation procedure. The preview hides the fault marker but is an instructor tool, not a secure assessment: exported files include the answer.
+Inspection reports whether an isolated conductor is intact and whether an operated contact opens and closes. It does not simulate a multimeter or teach a physical isolation procedure. The preview hides the fault marker but is an instructor tool, not a secure assessment: exported files include the answer.
 
 The application stores one draft locally. There is no roster, LMS, cloud account, or server database. That cut keeps the demonstration focused on authoring and preview rather than inventing Dakota's infrastructure. Cleared browser storage is not recoverable unless a lab file was exported.
 
@@ -73,7 +75,7 @@ npm run check
 
 `npm run check` builds the production app, runs the model/file/storage and API-boundary tests, and tests the production build in Chromium. Default checks make no paid requests; browser tests disable the key on their own server and intercept AI responses. Tests cover proposal refinement and cancellation, walkthrough navigation and draft preservation, authoring through export/import, storage recovery, another-tab conflicts, keyboard and pointer movement, responsive layout, and axe accessibility checks. Browser tests own port 4187 and use isolated contexts. Accessibility automation is not a full manual accessibility audit.
 
-`npm test` runs the domain and local API tests. After a build, `npm run test:e2e` runs the browser suite. **Optional paid check:** `npm run test:live` sends one bounded request using the configured key and checks the returned fault, duration, hints, and canonical lab contract. For formatting: `npm run format:check`.
+`npm test` runs the domain and local API tests. After a build, `npm run test:e2e` runs the browser suite. **Optional paid check:** `npm run test:live` sends one bounded request using the configured key and checks the returned fault, duration, hints, and canonical lab contract. To check a contact fault, use `npm run test:live -- --fault start-stuck-closed` (also accepts `start-stuck-open` or `stop-stuck-closed`). For formatting: `npm run format:check`.
 
 For the full browser matrix, install the other engines with `npx playwright install firefox webkit`, then run `npm run test:browsers` after building. This runs the same workflows in Chromium, Firefox, and Playwright WebKit. WebKit on Windows does not establish compatibility with every Safari or iOS release.
 

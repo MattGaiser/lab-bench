@@ -15,8 +15,8 @@ const slides = [
       'Apprentices see these instructions in preview. The fault marker is hidden, so keep the answer out of your brief and let them work it out.',
   },
   {
-    title: 'Choose one open conductor.',
-    body: 'Select a conductor, labeled W1–W5, then choose “Place open fault here.” An open conductor is a break in the path that carries current.',
+    title: 'Choose the fault to investigate.',
+    body: 'In Fault setup, choose an open conductor, a START contact stuck open or closed, or a STOP contact stuck closed. For an open conductor, select its location from W1–W5.',
     detail:
       'In the sample, W3 is the holding branch. It normally keeps the K1 contactor energized after START is released. Opening W3 makes K1 switch off when you let go.',
   },
@@ -24,7 +24,7 @@ const slides = [
     title: 'Test the lab as an apprentice.',
     body: 'Open Apprentice preview, turn the simulated supply on, then hold and release START. Check that the circuit behaves as your instructions describe.',
     detail:
-      'Next, isolate the supply and inspect a conductor. The apprentice selects the faulty conductor and explains what it changes. Preview leaves your lab draft unchanged.',
+      'Next, isolate the supply and inspect conductors or operate contacts. The apprentice identifies the faulty item, chooses the contact condition when relevant, and explains what it changes.',
   },
   {
     title: 'Export a reusable lab file.',

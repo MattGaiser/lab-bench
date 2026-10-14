@@ -28,6 +28,84 @@ export const componentInfo: Record<ComponentId, { label: string; detail: string 
   aux: { label: 'K1 AUX', detail: 'Holding contact · NO' },
   coil: { label: 'K1 COIL', detail: 'Contactor coil' },
 };
+export const CONTACTS = ['stop', 'start', 'aux'] as const;
+export type ContactId = (typeof CONTACTS)[number];
+export type TargetId = WireId | `contact-${ContactId}`;
+export type FaultCondition = 'open-wire' | 'stuck-open' | 'stuck-closed';
+type FaultDetails = {
+  label: string;
+  target: TargetId;
+  condition: FaultCondition;
+  description: string;
+};
+export const CONTACT_FAULTS = {
+  'start-stuck-open': {
+    label: 'START contact stuck open',
+    target: 'contact-start',
+    condition: 'stuck-open',
+    description: 'The START contact stays open when the button is pressed. K1 cannot pick up.',
+  },
+  'start-stuck-closed': {
+    label: 'START contact stuck closed',
+    target: 'contact-start',
+    condition: 'stuck-closed',
+    description:
+      'The START contact stays closed after release. K1 energizes as soon as the supply is on.',
+  },
+  'stop-stuck-closed': {
+    label: 'STOP contact stuck closed',
+    target: 'contact-stop',
+    condition: 'stuck-closed',
+    description:
+      'Pressing STOP does not open its contact. Once K1 is energized, only isolating the supply stops it.',
+  },
+} as const satisfies Record<string, FaultDetails>;
+export type ContactFault = keyof typeof CONTACT_FAULTS;
+export type FaultId = WireId | ContactFault;
+export const FAULTS: FaultId[] = [...WIRES, ...(Object.keys(CONTACT_FAULTS) as ContactFault[])];
+export function isWire(id: string | null): id is WireId {
+  return WIRES.includes(id as WireId);
+}
+export function faultDetails(fault: FaultId): FaultDetails {
+  return isWire(fault)
+    ? {
+        label: `${wireInfo[fault].tag} · ${wireInfo[fault].name} — open conductor`,
+        target: fault,
+        condition: 'open-wire',
+        description: wireInfo[fault].description,
+      }
+    : CONTACT_FAULTS[fault];
+}
+export function targetDetails(target: TargetId): { label: string; description: string } {
+  if (isWire(target))
+    return {
+      label: `${wireInfo[target].tag} · ${wireInfo[target].name}`,
+      description: wireInfo[target].description,
+    };
+  const contact = target.slice(8) as ContactId;
+  return {
+    label: `${componentInfo[contact].label} contact`,
+    description:
+      contact === 'aux'
+        ? 'Closes when K1 energizes to maintain the holding path.'
+        : contact === 'stop'
+          ? 'Normally closed. Pressing STOP should open this contact.'
+          : 'Normally open. Pressing START should close this contact.',
+  };
+}
+export function inspectTarget(target: TargetId, fault: FaultId | null) {
+  const found = fault !== null && faultDetails(fault).target === target;
+  if (isWire(target))
+    return { faulty: found, label: found ? 'Open conductor' : 'Intact conductor' };
+  if (!found) return { faulty: false, label: 'Contact opens and closes normally' };
+  return {
+    faulty: true,
+    label:
+      faultDetails(fault!).condition === 'stuck-open'
+        ? 'Stuck open — does not close when pressed'
+        : 'Stuck closed — does not open when operated',
+  };
+}
 export const bounds: Record<
   ComponentId,
   { minX: number; maxX: number; minY: number; maxY: number }
@@ -45,19 +123,19 @@ export function constrain(id: ComponentId, point: Point): Point {
   };
 }
 export type Lab = {
-  schemaVersion: 1;
+  schemaVersion: 2;
   template: 'start-stop';
   title: string;
   objective: string;
   briefing: string;
   durationMinutes: number;
-  fault: WireId | null;
+  fault: FaultId | null;
   hints: string[];
   positions: Record<ComponentId, Point>;
 };
 export function exampleLab(): Lab {
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     template: 'start-stop',
     title: "The motor won't stay on",
     objective:
@@ -97,10 +175,17 @@ export function parseLab(text: string): Lab {
   } catch {
     throw new Error('This is not a valid JSON lab file.');
   }
-  if (!isObject(data) || data.schemaVersion !== 1 || data.template !== 'start-stop')
-    throw new Error('Use a Lab Bench version 1 start/stop lab file.');
-  if (data.fault !== null && !WIRES.includes(data.fault as WireId))
-    throw new Error('The fault refers to an unknown conductor.');
+  if (
+    !isObject(data) ||
+    ![1, 2].includes(data.schemaVersion as number) ||
+    data.template !== 'start-stop'
+  )
+    throw new Error('Use a Lab Bench version 1 or 2 start/stop lab file.');
+  if (
+    data.fault !== null &&
+    !(data.schemaVersion === 1 ? WIRES : FAULTS).includes(data.fault as WireId)
+  )
+    throw new Error('The file specifies an unsupported fault.');
   if (
     typeof data.durationMinutes !== 'number' ||
     !Number.isInteger(data.durationMinutes) ||
@@ -130,13 +215,13 @@ export function parseLab(text: string): Lab {
     positions[id] = { x: point.x, y: point.y };
   }
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     template: 'start-stop',
     title: stringField(data.title, 'Title', 80),
     objective: stringField(data.objective, 'Learning objective', 400),
     briefing: stringField(data.briefing, 'Apprentice instructions', 2000),
     durationMinutes: data.durationMinutes,
-    fault: data.fault as WireId | null,
+    fault: data.fault as FaultId | null,
     hints: data.hints.map((h) => stringField(h, 'Hint', 300)),
     positions,
   };
@@ -169,9 +254,9 @@ export function checkLab(lab: Lab): Check[] {
     },
     {
       id: 'fault',
-      label: 'Choose one open conductor',
+      label: 'Choose a fault',
       pass: lab.fault !== null,
-      detail: 'Select a conductor on the canvas to place a fault.',
+      detail: 'Choose an open conductor or a stuck contact in Fault setup.',
     },
     {
       id: 'hints',
@@ -199,11 +284,21 @@ export const initialCircuit = (): CircuitState => ({
   stopHeld: false,
   coilOn: false,
 });
+export function contactClosed(
+  contact: ContactId,
+  state: CircuitState,
+  fault: FaultId | null,
+): boolean {
+  if (contact === 'stop') return fault === 'stop-stuck-closed' || !state.stopHeld;
+  if (contact === 'start')
+    return fault === 'start-stuck-closed' || (fault !== 'start-stuck-open' && state.startHeld);
+  return state.coilOn;
+}
 /** Ideal, fixed-topology control logic. No voltage, current, motor power, or protection model. */
 export function stepCircuit(
   state: CircuitState,
   action: CircuitAction,
-  fault: WireId | null,
+  fault: FaultId | null,
 ): CircuitState {
   const next = { ...state };
   if (action === 'power') {
@@ -222,9 +317,10 @@ export function stepCircuit(
   const commonPath = !['supply', 'coil', 'return'].includes(fault ?? '');
   next.coilOn =
     next.powered &&
-    !next.stopHeld &&
+    contactClosed('stop', next, fault) &&
     commonPath &&
-    ((next.startHeld && fault !== 'start') || (state.coilOn && fault !== 'hold'));
+    ((contactClosed('start', next, fault) && fault !== 'start') ||
+      (state.coilOn && fault !== 'hold'));
   return next;
 }
 

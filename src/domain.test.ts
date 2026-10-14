@@ -9,8 +9,13 @@ import {
   serializeLab,
   stepCircuit,
   WIRES,
+  CONTACT_FAULTS,
+  contactClosed,
+  faultDetails,
+  inspectTarget,
 } from './domain';
-import type { History } from './domain';
+import type { ContactFault, History } from './domain';
+import { parseScenario, scenarioSchema, expectedSymptom } from './scenario';
 import { DRAFT_KEY, loadDraft, saveDraft } from './storage';
 
 describe('start/stop control model', () => {
@@ -60,6 +65,14 @@ describe('start/stop control model', () => {
 });
 
 describe('lab file boundary', () => {
+  it('upgrades version 1 drafts and files without changing exercise content', () => {
+    const legacy = { ...exampleLab(), schemaVersion: 1 };
+    expect(parseLab(JSON.stringify(legacy))).toEqual(exampleLab());
+    expect(() => parseLab(JSON.stringify({ ...legacy, fault: 'start-stuck-closed' }))).toThrow(
+      'unsupported fault',
+    );
+    expect(() => parseLab(JSON.stringify({ ...legacy, schemaVersion: 3 }))).toThrow();
+  });
   it('round-trips the entire exercise into a fresh object', () => {
     const lab = exampleLab();
     const parsed = parseLab(serializeLab(lab));
@@ -96,6 +109,60 @@ describe('lab file boundary', () => {
         .filter((c) => !c.pass)
         .map((c) => c.id),
     ).toEqual(['title', 'objective', 'fault', 'hints']);
+  });
+});
+
+describe('contact faults', () => {
+  const actions = [
+    'power',
+    'start-down',
+    'start-up',
+    'stop-down',
+    'stop-up',
+    'power',
+    'power',
+  ] as const;
+  const responses: Record<ContactFault, boolean[]> = {
+    'start-stuck-open': [false, false, false, false, false, false, false],
+    'start-stuck-closed': [true, true, true, false, true, false, true],
+    'stop-stuck-closed': [false, true, true, true, true, false, false],
+  };
+  it.each(Object.keys(CONTACT_FAULTS) as ContactFault[])(
+    '%s has correct control behavior, inspection and file round-trip',
+    (fault) => {
+      let state = initialCircuit();
+      const observed = actions.map((action) => {
+        state = stepCircuit(state, action, fault);
+        return state.coilOn;
+      });
+      expect(observed).toEqual(responses[fault]);
+      const target = faultDetails(fault).target;
+      expect(inspectTarget(target, fault).faulty).toBe(true);
+      for (const wire of WIRES)
+        expect(inspectTarget(wire, fault)).toEqual({ faulty: false, label: 'Intact conductor' });
+      expect(inspectTarget('contact-aux', fault).faulty).toBe(false);
+      const lab = { ...exampleLab(), fault };
+      expect(parseLab(serializeLab(lab))).toEqual(lab);
+      expect(parseScenario({ message: 'Draft ready.', scenario: lab }).lab).toEqual(lab);
+      expect(scenarioSchema.properties.scenario.anyOf[1].properties?.fault.enum).toContain(fault);
+      expect(expectedSymptom(lab)).toBeTruthy();
+    },
+  );
+  it('keeps the displayed contacts consistent with the failed mechanism', () => {
+    const held = { ...initialCircuit(), startHeld: true, stopHeld: true };
+    expect(contactClosed('start', held, 'start-stuck-open')).toBe(false);
+    expect(contactClosed('start', initialCircuit(), 'start-stuck-closed')).toBe(true);
+    expect(contactClosed('stop', held, 'stop-stuck-closed')).toBe(true);
+    expect(contactClosed('stop', held, null)).toBe(false);
+    expect(contactClosed('aux', { ...held, coilOn: true }, null)).toBe(true);
+  });
+  it('rejects unsupported contact faults from AI and imported files', () => {
+    for (const fault of ['aux-stuck-open', 'coil-stuck-closed', 'short-circuit']) {
+      expect(() => parseLab(JSON.stringify({ ...exampleLab(), fault }))).toThrow();
+      expect(() =>
+        parseScenario({ message: 'Draft ready.', scenario: { ...exampleLab(), fault } }),
+      ).toThrow();
+    }
   });
 });
 

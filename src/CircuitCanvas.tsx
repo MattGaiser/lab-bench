@@ -13,13 +13,24 @@ import {
   ArrowUp,
   ArrowDown,
 } from 'lucide-react';
-import { COMPONENTS, WIRES, componentInfo, wireInfo, constrain } from './domain';
-import type { ComponentId, Lab, Point, WireId, CircuitState } from './domain';
+import {
+  COMPONENTS,
+  WIRES,
+  componentInfo,
+  wireInfo,
+  constrain,
+  contactClosed,
+  faultDetails,
+  initialCircuit,
+} from './domain';
+import type { ComponentId, ContactId, Lab, Point, WireId, CircuitState } from './domain';
 
 type Props = {
   lab: Lab;
   selected: WireId | null;
   onSelect: (wire: WireId) => void;
+  selectedContact?: ContactId | null;
+  onSelectContact?: (contact: ContactId) => void;
   onMove?: (id: ComponentId, point: Point) => void;
   preview?: boolean;
   state?: CircuitState;
@@ -32,6 +43,8 @@ export default function CircuitCanvas({
   lab,
   selected,
   onSelect,
+  selectedContact,
+  onSelectContact,
   onMove,
   preview = false,
   state,
@@ -198,7 +211,7 @@ export default function CircuitCanvas({
             viewBox="0 0 920 520"
             className="circuit-svg"
             role="group"
-            aria-label="Start-stop control circuit. Five selectable conductors and four components."
+            aria-label="Start-stop control circuit. Five conductors, three contacts, and a coil."
             onFocusCapture={(e) => {
               if (moving.current || panning.current) return;
               const target = e.target as SVGElement;
@@ -328,22 +341,27 @@ export default function CircuitCanvas({
               {COMPONENTS.map((id) => {
                 const p = positions[id];
                 const closed =
-                  id === 'stop'
-                    ? !state?.stopHeld
-                    : id === 'start'
-                      ? !!state?.startHeld
-                      : id === 'aux'
-                        ? !!state?.coilOn
-                        : !!state?.coilOn;
+                  id === 'coil'
+                    ? !!state?.coilOn
+                    : contactClosed(id, state ?? initialCircuit(), lab.fault);
+                const componentFault =
+                  !preview && lab.fault && faultDetails(lab.fault).target === `contact-${id}`
+                    ? faultDetails(lab.fault)
+                    : null;
+                const selectable = preview && id !== 'coil';
                 return (
                   <g
                     key={id}
                     data-component={id}
                     transform={`translate(${p.x} ${p.y})`}
-                    className={`component ${!preview ? 'movable' : ''} ${id === 'coil' && state?.coilOn ? 'energized' : ''}`}
-                    tabIndex={preview ? undefined : 0}
-                    role={preview ? undefined : 'button'}
-                    aria-label={`${componentInfo[id].label}${!preview ? '. Arrow keys move; Enter opens movement controls. Drag to reposition.' : ''}`}
+                    className={`component ${!preview ? 'movable' : ''} ${selectable ? 'inspectable' : ''} ${selectedContact === id ? 'selected' : ''} ${componentFault ? 'faulted' : ''} ${id === 'coil' && state?.coilOn ? 'energized' : ''}`}
+                    tabIndex={!preview || selectable ? 0 : undefined}
+                    role={!preview || selectable ? 'button' : undefined}
+                    aria-pressed={selectable ? selectedContact === id : undefined}
+                    aria-label={`${componentInfo[id].label}${selectable ? ' contact' : ''}${componentFault ? `, ${componentFault.condition.replaceAll('-', ' ')}` : ''}${!preview ? '. Arrow keys move; Enter opens movement controls. Drag to reposition.' : ''}`}
+                    onClick={() => {
+                      if (selectable) onSelectContact?.(id);
+                    }}
                     onPointerDown={(e) => {
                       if (preview || hand || e.button !== 0) return;
                       e.preventDefault();
@@ -359,6 +377,11 @@ export default function CircuitCanvas({
                       e.currentTarget.focus();
                     }}
                     onKeyDown={(e) => {
+                      if (selectable && (e.key === 'Enter' || e.key === ' ')) {
+                        e.preventDefault();
+                        onSelectContact?.(id);
+                        return;
+                      }
                       if (!preview && (e.key === 'Enter' || e.key === ' ')) {
                         e.preventDefault();
                         setMoveTarget(id);
@@ -413,7 +436,11 @@ export default function CircuitCanvas({
                     <circle cx="-55" r="4" className="terminal" />
                     <circle cx="55" r="4" className="terminal" />
                     <text y="35" textAnchor="middle" className="component-detail">
-                      {id === 'coil' && state?.coilOn ? 'Energized' : componentInfo[id].detail}
+                      {componentFault
+                        ? componentFault.condition.replaceAll('-', ' ')
+                        : id === 'coil' && state?.coilOn
+                          ? 'Energized'
+                          : componentInfo[id].detail}
                     </text>
                   </g>
                 );

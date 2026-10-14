@@ -10,8 +10,18 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import CircuitCanvas from './CircuitCanvas';
-import { initialCircuit, stepCircuit, wireInfo, WIRES } from './domain';
-import type { CircuitAction, Lab, WireId } from './domain';
+import {
+  CONTACTS,
+  faultDetails,
+  initialCircuit,
+  inspectTarget,
+  isWire,
+  stepCircuit,
+  targetDetails,
+  wireInfo,
+  WIRES,
+} from './domain';
+import type { CircuitAction, ContactId, FaultCondition, Lab, TargetId } from './domain';
 
 export default function Preview({ lab, onClose }: { lab: Lab; onClose: () => void }) {
   const headingRef = useRef<HTMLHeadingElement>(null);
@@ -23,8 +33,11 @@ export default function Preview({ lab, onClose }: { lab: Lab; onClose: () => voi
     undefined,
     initialCircuit,
   );
-  const [selected, setSelected] = useState<WireId | null>(null);
-  const [inspected, setInspected] = useState<Partial<Record<WireId, boolean>>>({});
+  const [selected, setSelected] = useState<TargetId | null>(null);
+  const [inspected, setInspected] = useState<
+    Partial<Record<TargetId, ReturnType<typeof inspectTarget>>>
+  >({});
+  const [condition, setCondition] = useState<FaultCondition | ''>('');
   const [hints, setHints] = useState(0);
   const [answer, setAnswer] = useState<'correct' | 'wrong' | null>(null);
   const [explanation, setExplanation] = useState('');
@@ -52,9 +65,16 @@ export default function Preview({ lab, onClose }: { lab: Lab; onClose: () => voi
           : a === 'start-up'
             ? `START released → K1 ${next.coilOn ? 'stays energized' : 'de-energized'}.`
             : a === 'stop-down'
-              ? 'STOP held → K1 de-energized.'
-              : '';
+              ? `STOP held → K1 ${next.coilOn ? 'stays energized' : 'de-energized'}.`
+              : a === 'stop-up'
+                ? `STOP released → K1 ${next.coilOn ? 'energized' : 'de-energized'}.`
+                : '';
     if (message) setObservations((old) => [message, ...old].slice(0, 6));
+  };
+  const selectTarget = (target: TargetId) => {
+    setSelected(target);
+    setCondition('');
+    setAnswer(null);
   };
   const momentary = (type: 'start' | 'stop') => ({
     onPointerDown: (e: React.PointerEvent<HTMLButtonElement>) => {
@@ -172,71 +192,99 @@ export default function Preview({ lab, onClose }: { lab: Lab; onClose: () => voi
           </div>
           <CircuitCanvas
             lab={lab}
-            selected={selected}
-            onSelect={(wire) => {
-              setSelected(wire);
-              setAnswer(null);
-            }}
+            selected={isWire(selected) ? selected : null}
+            onSelect={selectTarget}
+            selectedContact={
+              selected && !isWire(selected) ? (selected.slice(8) as ContactId) : null
+            }
+            onSelectContact={(contact) => selectTarget(`contact-${contact}`)}
             preview
             state={state}
           />
         </div>
         <aside className="preview-aside">
           <section className="side-card inspect-card">
-            <h3>
-              {selected
-                ? `${wireInfo[selected].tag} · ${wireInfo[selected].name}`
-                : 'Select a conductor'}
-            </h3>
+            <h3>{selected ? targetDetails(selected).label : 'Choose what to inspect'}</h3>
             <label className="field">
-              <span>Conductor to inspect</span>
+              <span>Item to inspect</span>
               <select
                 value={selected ?? ''}
                 onChange={(e) => {
-                  setSelected(e.target.value as WireId);
-                  setAnswer(null);
+                  selectTarget(e.target.value as TargetId);
                 }}
               >
                 <option value="" disabled>
-                  Choose W1–W5
+                  Choose a conductor or contact
                 </option>
-                {WIRES.map((id) => (
-                  <option key={id} value={id}>
-                    {wireInfo[id].tag} · {wireInfo[id].name}
-                  </option>
-                ))}
+                <optgroup label="Conductors">
+                  {WIRES.map((id) => (
+                    <option key={id} value={id}>
+                      {wireInfo[id].tag} · {wireInfo[id].name}
+                    </option>
+                  ))}
+                </optgroup>
+                <optgroup label="Contacts">
+                  {CONTACTS.map((id) => (
+                    <option key={id} value={`contact-${id}`}>
+                      {targetDetails(`contact-${id}`).label}
+                    </option>
+                  ))}
+                </optgroup>
               </select>
             </label>
             <p>
               {selected
-                ? wireInfo[selected].description
-                : 'Choose W1–W5 on the circuit. Isolate the supply before inspecting a conductor.'}
+                ? targetDetails(selected).description
+                : 'Choose a conductor or contact on the circuit. Isolate the supply, then inspect it.'}
             </p>
             <button
               className="button secondary full"
               disabled={!selected || state.powered}
               onClick={() => {
                 if (selected && !state.powered)
-                  setInspected((old) => ({ ...old, [selected]: selected !== lab.fault }));
+                  setInspected((old) => ({
+                    ...old,
+                    [selected]: inspectTarget(selected, lab.fault),
+                  }));
               }}
             >
               <Search size={16} />
-              Inspect isolated conductor
+              {selected && !isWire(selected)
+                ? 'Operate isolated contact'
+                : 'Inspect isolated conductor'}
             </button>
             {state.powered && (
               <p className="field-help">Isolate the supply to enable inspection.</p>
             )}
             {selected && inspected[selected] !== undefined && (
               <div
-                className={`inspection-result ${inspected[selected] ? '' : 'open'}`}
+                className={`inspection-result ${inspected[selected]?.faulty ? 'open' : ''}`}
                 role="status"
               >
-                {inspected[selected] ? 'Intact conductor' : 'Open conductor'}
+                {inspected[selected]?.label}
               </div>
             )}
             <div className="diagnosis-heading">
-              <p>Which conductor explains the symptom?</p>
+              <p>Identify the fault and explain the symptom.</p>
             </div>
+            {selected && !isWire(selected) && (
+              <label className="field explanation-field">
+                <span>Contact fault</span>
+                <select
+                  value={condition}
+                  onChange={(e) => {
+                    setCondition(e.target.value as FaultCondition);
+                    setAnswer(null);
+                  }}
+                >
+                  <option value="" disabled>
+                    Choose a condition
+                  </option>
+                  <option value="stuck-open">Stuck open</option>
+                  <option value="stuck-closed">Stuck closed</option>
+                </select>
+              </label>
+            )}
             <label className="field explanation-field">
               <span>Your explanation</span>
               <textarea
@@ -252,8 +300,16 @@ export default function Preview({ lab, onClose }: { lab: Lab; onClose: () => voi
             </label>
             <button
               className="button primary full"
-              disabled={!selected || !explanation.trim()}
-              onClick={() => setAnswer(selected === lab.fault ? 'correct' : 'wrong')}
+              disabled={!selected || !explanation.trim() || (!isWire(selected) && !condition)}
+              onClick={() =>
+                setAnswer(
+                  lab.fault &&
+                    selected === faultDetails(lab.fault).target &&
+                    (isWire(selected) || condition === faultDetails(lab.fault).condition)
+                    ? 'correct'
+                    : 'wrong',
+                )
+              }
             >
               Check diagnosis
               <ChevronRight size={16} />
@@ -266,15 +322,15 @@ export default function Preview({ lab, onClose }: { lab: Lab; onClose: () => voi
                     <div>
                       <strong>Fault located.</strong>
                       <p>
-                        Your selected conductor matches the fault. Discuss your explanation with
-                        your instructor.
+                        Your diagnosis matches the fault. Discuss your explanation with your
+                        instructor.
                       </p>
                     </div>
                   </>
                 ) : (
                   <p>
-                    That conductor isn’t the fault. Compare your observations and inspect another
-                    conductor, then try again.
+                    That diagnosis doesn’t match. Compare your observations, check the selected item
+                    and its condition, then try again.
                   </p>
                 )}
               </div>

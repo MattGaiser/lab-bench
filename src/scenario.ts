@@ -1,4 +1,4 @@
-import { checkLab, exampleLab, initialCircuit, parseLab, stepCircuit, WIRES } from './domain.ts';
+import { checkLab, exampleLab, initialCircuit, parseLab, stepCircuit, FAULTS } from './domain.ts';
 import type { Lab } from './domain.ts';
 
 export type Proposal = { message: string; lab: Lab | null };
@@ -21,7 +21,7 @@ export const scenarioSchema = {
             objective: text(400),
             briefing: text(2000),
             durationMinutes: { type: 'integer', minimum: 5, maximum: 60 },
-            fault: { type: 'string', enum: [...WIRES] },
+            fault: { type: 'string', enum: [...FAULTS] },
             hints: { type: 'array', maxItems: 3, items: text(300) },
           },
         },
@@ -61,6 +61,10 @@ export function parseScenario(value: unknown): Proposal {
 }
 
 export function expectedSymptom(lab: Lab): string {
+  if (lab.fault === 'start-stuck-closed')
+    return 'K1 energizes as soon as the supply is on. STOP turns it off only while held; releasing STOP restarts it.';
+  if (lab.fault === 'stop-stuck-closed')
+    return 'K1 starts normally and stays energized after START is released. Pressing STOP has no effect; isolating the supply turns K1 off.';
   const held = stepCircuit(
     stepCircuit(initialCircuit(), 'power', lab.fault),
     'start-down',

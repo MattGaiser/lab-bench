@@ -48,7 +48,7 @@ test('paginated guide can go back, finish and replay without changing the draft'
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Let’s walk the bench.');
   await page.getByRole('button', { name: 'Let’s begin' }).click();
   for (const title of [
-    'Choose one open conductor.',
+    'Choose the fault to investigate.',
     'Test the lab as an apprentice.',
     'Export a reusable lab file.',
   ]) {

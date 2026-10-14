@@ -14,8 +14,10 @@ import {
   Trash2,
   Unplug,
 } from 'lucide-react';
-import { checkLab, initialCircuit, stepCircuit, wireInfo, WIRES } from './domain';
-import type { Lab, WireId } from './domain';
+import { checkLab, CONTACT_FAULTS, faultDetails, isWire, wireInfo, WIRES } from './domain';
+import type { ContactFault, Lab, WireId } from './domain';
+import { expectedSymptom } from './scenario';
+import { contactLessons } from './lessons';
 import { revealAboveFooter } from './focus';
 export type Tab = 'details' | 'fault' | 'review';
 type Props = {
@@ -55,12 +57,6 @@ export default function Inspector({
         button?.scrollIntoView({ block: 'start' });
     });
   };
-  const held = stepCircuit(
-    stepCircuit(initialCircuit(), 'power', lab.fault),
-    'start-down',
-    lab.fault,
-  );
-  const released = stepCircuit(held, 'start-up', lab.fault);
   return (
     <aside
       className="inspector"
@@ -231,93 +227,132 @@ export default function Inspector({
           <>
             <div className="panel-intro">
               <h3>Choose the fault.</h3>
-              <p>
-                Introduce one open conductor. The apprentice’s job is to find it and explain why.
-              </p>
+              <p>Choose a broken conductor or a contact that fails to open or close.</p>
             </div>
             <label className="field">
-              <span>Selected conductor</span>
+              <span>Fault type</span>
               <select
-                value={selected ?? ''}
-                onChange={(e) => setSelected(e.target.value as WireId)}
+                value={lab.fault === null || isWire(lab.fault) ? 'open-wire' : lab.fault}
+                onChange={(e) =>
+                  update({
+                    fault:
+                      e.target.value === 'open-wire'
+                        ? (selected ?? 'hold')
+                        : (e.target.value as ContactFault),
+                  })
+                }
               >
-                <option value="" disabled>
-                  Choose a conductor
-                </option>
-                {WIRES.map((id) => (
+                <option value="open-wire">Open conductor · choose W1–W5</option>
+                {Object.entries(CONTACT_FAULTS).map(([id, fault]) => (
                   <option value={id} key={id}>
-                    {wireInfo[id].tag} · {wireInfo[id].name}
+                    {fault.label}
                   </option>
                 ))}
               </select>
             </label>
-            {selected && (
-              <div className="selected-wire-card">
-                <div className="wire-card-symbol">
-                  <Unplug size={23} />
-                </div>
-                <span className="overline">{wireInfo[selected].tag}</span>
-                <h3>{wireInfo[selected].name}</h3>
-                <details className="disclosure compact-disclosure">
-                  <summary>
-                    <span>About this conductor</span>
-                  </summary>
-                  <div className="disclosure-body">
-                    <p>{wireInfo[selected].description}</p>
-                  </div>
-                </details>
-                {lab.fault === selected ? (
-                  <div className="fault-state">
-                    <span />
-                    <strong>Open conductor</strong>
-                    <span className="small">Fault placed</span>
-                  </div>
-                ) : (
-                  <button
-                    className="button fault-button full"
-                    onClick={() => update({ fault: selected })}
+            {lab.fault === null || isWire(lab.fault) ? (
+              <>
+                <label className="field">
+                  <span>Selected conductor</span>
+                  <select
+                    value={selected ?? ''}
+                    onChange={(e) => setSelected(e.target.value as WireId)}
                   >
-                    <Plus size={16} />
-                    Place open fault here
-                  </button>
+                    <option value="" disabled>
+                      Choose a conductor
+                    </option>
+                    {WIRES.map((id) => (
+                      <option value={id} key={id}>
+                        {wireInfo[id].tag} · {wireInfo[id].name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                {selected && (
+                  <div className="selected-wire-card">
+                    <div className="wire-card-symbol">
+                      <Unplug size={23} />
+                    </div>
+                    <span className="overline">{wireInfo[selected].tag}</span>
+                    <h3>{wireInfo[selected].name}</h3>
+                    <details className="disclosure compact-disclosure">
+                      <summary>
+                        <span>About this conductor</span>
+                      </summary>
+                      <div className="disclosure-body">
+                        <p>{wireInfo[selected].description}</p>
+                      </div>
+                    </details>
+                    {lab.fault === selected ? (
+                      <div className="fault-state">
+                        <span />
+                        <strong>Open conductor</strong>
+                        <span className="small">Fault placed</span>
+                      </div>
+                    ) : (
+                      <button
+                        className="button fault-button full"
+                        onClick={() => update({ fault: selected })}
+                      >
+                        <Plus size={16} />
+                        Place open fault here
+                      </button>
+                    )}
+                  </div>
                 )}
+                <div className="fault-summary">
+                  <div className="section-line">
+                    <span className="overline">EXERCISE FAULT</span>
+                    <span className="count-badge">{lab.fault ? '1 / 1' : '0 / 1'}</span>
+                  </div>
+                  {lab.fault ? (
+                    <div className="placed-fault">
+                      <div>
+                        <strong>
+                          {wireInfo[lab.fault].tag} · {wireInfo[lab.fault].name}
+                        </strong>
+                        <p>Open conductor</p>
+                      </div>
+                      <button
+                        className="icon-button"
+                        aria-label="Remove fault"
+                        title="Remove fault"
+                        onClick={() => update({ fault: null })}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  ) : (
+                    <p className="empty-note">
+                      No fault placed. Select a conductor above to add one.
+                    </p>
+                  )}
+                </div>
+              </>
+            ) : (
+              <div className="selected-wire-card">
+                <h3>{faultDetails(lab.fault).label}</h3>
+                <p className="field-help">{faultDetails(lab.fault).description}</p>
+                <button
+                  className="button secondary full"
+                  title="Replace the title, objective, instructions, and hints. Undo restores your text."
+                  onClick={() => {
+                    if (lab.fault && !isWire(lab.fault)) update(contactLessons[lab.fault]);
+                  }}
+                >
+                  Use suggested lesson text
+                </button>
+                <button className="text-button" onClick={() => update({ fault: null })}>
+                  <Trash2 size={15} /> Remove fault
+                </button>
               </div>
             )}
-            <div className="fault-summary">
-              <div className="section-line">
-                <span className="overline">EXERCISE FAULT</span>
-                <span className="count-badge">{lab.fault ? '1 / 1' : '0 / 1'}</span>
-              </div>
-              {lab.fault ? (
-                <div className="placed-fault">
-                  <div>
-                    <strong>
-                      {wireInfo[lab.fault].tag} · {wireInfo[lab.fault].name}
-                    </strong>
-                    <p>Open conductor</p>
-                  </div>
-                  <button
-                    className="icon-button"
-                    aria-label="Remove fault"
-                    title="Remove fault"
-                    onClick={() => update({ fault: null })}
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              ) : (
-                <p className="empty-note">No fault placed. Select a conductor above to add one.</p>
-              )}
-            </div>
             <details className="disclosure">
               <summary>
                 <span>Expected circuit response</span>
               </summary>
               <div className="disclosure-body expected-behavior">
-                <p>
-                  START held: K1 {held.coilOn ? 'energizes' : 'stays off'}.<br />
-                  START released: K1 {released.coilOn ? 'stays energized' : 'is off'}.
-                </p>
+                <p>{expectedSymptom(lab)}</p>
                 <button className="text-button small" onClick={() => showTab('details')}>
                   Check that your brief matches
                   <ArrowUpRight size={13} />

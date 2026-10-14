@@ -74,7 +74,7 @@ test('draft reload, invalid import, preflight failure and recovery preserve user
   await page.getByRole('button', { name: 'Remove fault' }).click();
   await page.getByRole('button', { name: 'Export lab', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'A few things to finish.' })).toBeVisible();
-  await page.getByRole('button', { name: /Choose one open conductor/ }).click();
+  await page.getByRole('button', { name: /Choose a fault/ }).click();
   await page.getByRole('button', { name: 'Place open fault here' }).click();
   await expect(page.getByText('Ready to preview')).toBeVisible();
 });
@@ -260,7 +260,7 @@ test.describe('touch layout', () => {
     await page.getByRole('button', { name: 'Apprentice preview', exact: true }).tap();
     const viewport = page.getByRole('region', { name: /Circuit diagram/ });
     expect(await viewport.evaluate((e) => e.scrollWidth > e.clientWidth)).toBe(true);
-    await page.getByLabel('Conductor to inspect').selectOption('hold');
+    await page.getByLabel('Item to inspect').selectOption('hold');
     await page.getByRole('button', { name: 'Inspect isolated conductor' }).tap();
     await expect(page.getByRole('status').filter({ hasText: 'Open conductor' })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
