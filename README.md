@@ -1,6 +1,6 @@
 # Lab Bench
 
-An instructor should be able to turn a troubleshooting idea into a usable lab without configuring a simulator from scratch. Lab Bench offers a guided walkthrough, a ready-made sample, and an optional AI scenario assistant. Describe a teaching goal, review the proposed brief and fault, then try the exact exercise as an apprentice.
+An instructor should be able to turn a troubleshooting idea into a usable lab without configuring a simulator from scratch. Lab Bench begins with five illustrated cards explaining the workflow. Choose a sample or describe a teaching goal, review the brief and fault, then try the exact exercise as an apprentice.
 
 **Author a lab → check the symptom → export a reusable exercise.**
 
@@ -36,10 +36,10 @@ The server binds to loopback and checks Host/Origin before handling AI requests.
 
 ## Try the complete workflow
 
-1. From the starting screen, choose **Take the 2-minute tour** for five stops through the real interface, or **Open sample editor** to start editing. **Show me around** in the header replays the tour. It preserves the draft and uses a temporary sample for the preview stop. AI proposals survive a detour through the tour or editor during the current page session.
+1. The first card is **Let’s walk the bench**. Choose **Let’s begin** to read five illustrated explanations, or **Skip intro** to choose a starting point. Select **Explore a ready-made lab**, then **Open sample editor**. **Show me around** in the editor replays the guide. The cards leave saved drafts unchanged; AI proposals survive navigation through the guide or editor during the current page session.
 2. The sample has an open **W3 holding branch**. Select a conductor on the canvas or in the inspector; place or remove the fault. Drag a component to arrange the circuit, or focus it and use arrow keys. Undo restores the whole drag.
-3. Open **Lab details** to edit the objective, instructions, duration, and optional hints. **Review** identifies missing requirements.
-4. Open **Apprentice preview**, turn on the supply, and hold **START**. K1 energizes. Release START and it drops out because the holding branch is open.
+3. **Lab details** contains the objective, instructions, duration, and optional hints. Its **Next: choose a fault** button opens **Fault setup**, then **Next: review lab** opens the readiness checks. The authoring panel comes before the canvas on small screens.
+4. Open **Apprentice preview**. Read the scenario, then use the controls above the circuit: turn on the supply and hold **START**. K1 energizes. Release START and it drops out because the holding branch is open. On small screens, scroll the diagram horizontally; **Reset zoom and pan** resets the canvas view.
 5. Select **W3**, isolate the supply, and inspect the conductor. Write an explanation and check the diagnosis. The selected conductor is checked automatically; the written explanation is left for an instructor to discuss.
 6. Return to authoring and **Export lab**. Load the sample or change the exercise, then **Import** the exported file to restore the exact brief, hints, fault, and layout. Undo can restore the previous draft.
 
@@ -48,7 +48,7 @@ The bundled [example lab](examples/holding-circuit.lab.json) can also be importe
 ## What the sample covers
 
 - An interactive SVG canvas with conductor selection, bounded component layout, keyboard movement, pan, zoom, and undo/redo.
-- A clear starting screen, a skippable and replayable walkthrough, and optional AI scenario drafting with review and undo.
+- A paginated illustrated guide, a single starting choice, and separate AI composition and proposal-review screens with undo.
 - Instructor authoring, an explicit readiness check, and a preview of a stable lab snapshot.
 - A deterministic control-circuit model with five possible open-conductor locations.
 - A versioned lab file with strict input validation and atomic import into the editor.
@@ -75,7 +75,7 @@ npm run check
 
 `npm test` runs the domain and local API tests. After a build, `npm run test:e2e` runs the browser suite. **Optional paid check:** `npm run test:live` sends one bounded request using the configured key and checks the returned fault, duration, hints, and canonical lab contract. For formatting: `npm run format:check`.
 
-To create a release, commit the source and run `npm run package` (requires Git). This builds from a clean worktree and produces `artifacts/lab-bench-1.1.0.zip` with the committed source, production assets, and a `release.json` identifying the source revision.
+To create a release, commit the source and run `npm run package` (requires Git). This builds from a clean worktree and produces `artifacts/lab-bench-1.2.0.zip` with the committed source, production assets, and a `release.json` identifying the source revision.
 
 ## How it is built
 

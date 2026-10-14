@@ -104,19 +104,34 @@ export default function Preview({ lab, onClose }: { lab: Lab; onClose: () => voi
       </div>
       <div className="preview-layout">
         <div className="preview-main">
-          <CircuitCanvas
-            lab={lab}
-            selected={selected}
-            onSelect={(wire) => {
-              setSelected(wire);
-              setAnswer(null);
-            }}
-            preview
-            state={state}
-          />
+          <section className="side-card preview-brief" aria-label="Read the scenario">
+            <h2 className="overline">01 / READ THE SCENARIO</h2>
+            <p className="briefing-copy">{lab.briefing}</p>
+            {lab.hints.length > 0 && (
+              <div className="hints-box">
+                {lab.hints.slice(0, hints).map((hint, i) => (
+                  <p key={i}>
+                    <Lightbulb size={15} />
+                    <span>{hint}</span>
+                  </p>
+                ))}
+                <button
+                  className="text-button"
+                  disabled={hints >= lab.hints.length}
+                  onClick={() => setHints((n) => n + 1)}
+                >
+                  <Lightbulb size={15} />
+                  {hints >= lab.hints.length
+                    ? 'All hints revealed'
+                    : `Reveal hint ${hints + 1} of ${lab.hints.length}`}
+                  <ChevronRight size={14} />
+                </button>
+              </div>
+            )}
+          </section>
           <div className="control-station">
             <div className="station-title">
-              <span className="overline">CONTROL STATION</span>
+              <span className="overline">02 / OBSERVE</span>
               <span className={`coil-state ${state.coilOn ? 'on' : ''}`} role="status">
                 <i />
                 K1 {state.coilOn ? 'energized' : 'de-energized'}
@@ -155,6 +170,16 @@ export default function Preview({ lab, onClose }: { lab: Lab; onClose: () => voi
               </span>
             </div>
           </div>
+          <CircuitCanvas
+            lab={lab}
+            selected={selected}
+            onSelect={(wire) => {
+              setSelected(wire);
+              setAnswer(null);
+            }}
+            preview
+            state={state}
+          />
           <div className="model-note">
             <Zap size={16} />
             <p>
@@ -164,34 +189,8 @@ export default function Preview({ lab, onClose }: { lab: Lab; onClose: () => voi
           </div>
         </div>
         <aside className="preview-aside">
-          <section className="side-card">
-            <span className="overline">YOUR TASK</span>
-            <h2>Follow the symptom.</h2>
-            <p className="briefing-copy">{lab.briefing}</p>
-            {lab.hints.length > 0 && (
-              <div className="hints-box">
-                {lab.hints.slice(0, hints).map((hint, i) => (
-                  <p key={i}>
-                    <Lightbulb size={15} />
-                    <span>{hint}</span>
-                  </p>
-                ))}
-                <button
-                  className="text-button"
-                  disabled={hints >= lab.hints.length}
-                  onClick={() => setHints((n) => n + 1)}
-                >
-                  <Lightbulb size={15} />
-                  {hints >= lab.hints.length
-                    ? 'All hints revealed'
-                    : `Reveal hint ${hints + 1} of ${lab.hints.length}`}
-                  <ChevronRight size={14} />
-                </button>
-              </div>
-            )}
-          </section>
           <section className="side-card inspect-card">
-            <span className="overline">CONDUCTOR INSPECTION</span>
+            <span className="overline">03 / INSPECT</span>
             <h3>
               {selected
                 ? `${wireInfo[selected].tag} · ${wireInfo[selected].name}`
@@ -244,6 +243,10 @@ export default function Preview({ lab, onClose }: { lab: Lab; onClose: () => voi
                 <small>Model inspection · not a meter reading</small>
               </div>
             )}
+            <div className="diagnosis-heading">
+              <span className="overline">04 / EXPLAIN</span>
+              <p>Which conductor explains the symptom?</p>
+            </div>
             <label className="field explanation-field">
               <span>Your explanation</span>
               <textarea

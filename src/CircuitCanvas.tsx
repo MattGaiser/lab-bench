@@ -152,14 +152,15 @@ export default function CircuitCanvas({
           <span className="tool-divider" />
           <button
             className="icon-button"
-            aria-label="Fit circuit"
-            title="Fit circuit"
+            aria-label="Reset zoom and pan"
+            title="Reset zoom and pan"
             onClick={resetView}
           >
             <Expand size={16} />
           </button>
         </div>
       </div>
+      <p className="canvas-scroll-hint">Scroll sideways to explore the circuit →</p>
       <div className={`canvas-surface ${hand ? 'hand-tool' : ''}`}>
         <div className="board-caption">
           <span className="status-dot" />

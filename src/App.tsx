@@ -3,7 +3,6 @@ import {
   ArrowDownToLine,
   ArrowUpFromLine,
   ArrowUpRight,
-  BookOpen,
   Check,
   CheckCheck,
   ChevronRight,
@@ -19,7 +18,6 @@ import CircuitCanvas from './CircuitCanvas';
 import Preview from './Preview';
 import Inspector from './Inspector';
 import StartPage from './StartPage';
-import Walkthrough from './Walkthrough';
 import type { Tab } from './Inspector';
 import {
   checkLab,
@@ -56,7 +54,7 @@ export default function App() {
   const [hasOpened, setHasOpened] = useState(
     initial.status !== 'new' || window.location.hash === '#editor',
   );
-  const [tourStep, setTourStep] = useState<number | null>(null);
+  const [guideRequest, replayGuide] = useReducer((n: number) => n + 1, 0);
   const [history, dispatch] = useReducer(historyReducer, {
     past: [],
     present: initial.lab,
@@ -129,7 +127,6 @@ export default function App() {
       if (
         preview ||
         screen === 'start' ||
-        tourStep !== null ||
         aboutRef.current?.open ||
         (e.target instanceof Element &&
           e.target.closest('input, textarea, select, [contenteditable="true"]'))
@@ -142,7 +139,7 @@ export default function App() {
     };
     window.addEventListener('keydown', keys);
     return () => window.removeEventListener('keydown', keys);
-  }, [preview, screen, tourStep]);
+  }, [preview, screen]);
   useEffect(() => {
     if (!message || message.error) return;
     const timer = setTimeout(() => setMessage(null), 5000);
@@ -165,19 +162,12 @@ export default function App() {
     window.history.replaceState(null, '', '#editor');
     window.scrollTo({ top: 0 });
   };
-  const goToTourStep = (step: number) => {
-    openEditor();
-    setTourStep(step);
-    setTab(step === 0 ? 'details' : step === 4 ? 'review' : 'fault');
-    setPreview(step === 3 ? exampleLab() : null);
-  };
-  const closeTour = () => {
-    setTourStep(null);
+  const showGuide = () => {
+    setScreen('start');
     setPreview(null);
+    replayGuide();
+    window.history.replaceState(null, '', window.location.pathname);
     window.scrollTo({ top: 0 });
-    requestAnimationFrame(() =>
-      document.getElementById('show-tour')?.focus({ preventScroll: true }),
-    );
   };
 
   const update = (patch: Partial<Lab>, group?: string) =>
@@ -186,6 +176,12 @@ export default function App() {
   const selectWire = (wire: WireId) => {
     setSelected(wire);
     setTab('fault');
+    if (window.matchMedia('(max-width: 900px)').matches)
+      requestAnimationFrame(() => {
+        const faultTab = document.getElementById('tab-fault');
+        faultTab?.focus({ preventScroll: true });
+        faultTab?.scrollIntoView({ block: 'start' });
+      });
   };
   const exportLab = () => {
     if (!ready) {
@@ -262,11 +258,8 @@ export default function App() {
     setPreview(structuredClone(lab));
     window.scrollTo({ top: 0 });
   };
-  const showTab = (next: Tab) => {
-    setTab(next);
-  };
   return (
-    <div className="app-shell">
+    <div className={`app-shell ${screen === 'start' ? 'guided-entry' : ''}`}>
       <header className="app-header">
         <a
           className="brand"
@@ -298,7 +291,7 @@ export default function App() {
             id="show-tour"
             aria-label="Show me around"
             className="text-button tour-launch"
-            onClick={() => goToTourStep(0)}
+            onClick={showGuide}
           >
             <Compass size={17} />
             <span>Show me around</span>
@@ -322,7 +315,7 @@ export default function App() {
           lab={lab}
           hasDraft={hasOpened}
           onResume={openEditor}
-          onTour={() => goToTourStep(0)}
+          guideRequest={guideRequest}
           onImport={() => importRef.current?.click()}
           onSample={() => {
             dispatch({ type: 'replace', lab: exampleLab() });
@@ -360,7 +353,7 @@ export default function App() {
                   window.history.replaceState(null, '', window.location.pathname);
                 }}
               >
-                Start a lab
+                Home
               </button>
               <ChevronRight size={13} />
               <span>Motor controls</span>
@@ -370,18 +363,17 @@ export default function App() {
             <div className="page-heading">
               <div className="heading-copy">
                 <div className="heading-eyebrow">
-                  <span className="overline">MAKE EVERY REP COUNT</span>
+                  <span className="overline">LAB EDITOR</span>
                   <span className="draft-pill">Draft exercise</span>
                 </div>
                 <h1>{lab.title.trim() || 'Untitled exercise'}</h1>
-                <p>Set the challenge. Shape the learning. Try it from their side.</p>
               </div>
               <div className="heading-actions">
-                <button id="preview-main" className="button secondary" onClick={previewLab}>
+                <button id="preview-main" className="button primary" onClick={previewLab}>
                   <Play size={16} />
                   Apprentice preview
                 </button>
-                <button className="button primary" onClick={exportLab}>
+                <button className="button secondary" onClick={exportLab}>
                   <ArrowDownToLine size={16} />
                   Export lab
                 </button>
@@ -485,60 +477,6 @@ export default function App() {
             )}
 
             <div className="editor-layout">
-              <div className="editor-main">
-                <CircuitCanvas
-                  lab={lab}
-                  selected={selected}
-                  onSelect={selectWire}
-                  onMove={(id, p) => update({ positions: { ...lab.positions, [id]: p } })}
-                  onUndo={() => dispatch({ type: 'undo' })}
-                  onRedo={() => dispatch({ type: 'redo' })}
-                  canUndo={history.past.length > 0}
-                  canRedo={history.future.length > 0}
-                />
-                <div className="below-canvas">
-                  <div className="objective-icon">
-                    <BookOpen size={21} />
-                  </div>
-                  <div>
-                    <span className="overline">THE LEARNING OBJECTIVE</span>
-                    <p>
-                      {lab.objective.trim() ||
-                        'Add an objective so apprentices know what they are working toward.'}
-                    </p>
-                  </div>
-                  <button className="text-button" onClick={() => showTab('details')}>
-                    Edit
-                    <ArrowUpRight size={15} />
-                  </button>
-                </div>
-                <div className="workflow-strip">
-                  <div>
-                    <span className="step-number">01</span>
-                    <div>
-                      <strong>Shape the exercise</strong>
-                      <p>Choose a fault and add context.</p>
-                    </div>
-                  </div>
-                  <ChevronRight size={17} />
-                  <div>
-                    <span className="step-number">02</span>
-                    <div>
-                      <strong>Try their experience</strong>
-                      <p>Check the symptom in preview.</p>
-                    </div>
-                  </div>
-                  <ChevronRight size={17} />
-                  <div>
-                    <span className="step-number">03</span>
-                    <div>
-                      <strong>Take it to the bench</strong>
-                      <p>Export a reusable lab file.</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
               <Inspector
                 lab={lab}
                 selected={selected}
@@ -555,9 +493,21 @@ export default function App() {
                   setMessage({ text: 'Sample loaded. Undo restores your previous draft.' });
                 }}
               />
+              <div className="editor-main">
+                <CircuitCanvas
+                  lab={lab}
+                  selected={selected}
+                  onSelect={selectWire}
+                  onMove={(id, p) => update({ positions: { ...lab.positions, [id]: p } })}
+                  onUndo={() => dispatch({ type: 'undo' })}
+                  onRedo={() => dispatch({ type: 'redo' })}
+                  canUndo={history.past.length > 0}
+                  canRedo={history.future.length > 0}
+                />
+              </div>
             </div>
             <footer className="page-footer">
-              <span>Built for the moments before the real bench.</span>
+              <span>Export a lab file to reuse this exercise on another device.</span>
               <button className="text-button small" onClick={() => aboutRef.current?.showModal()}>
                 About this work sample
                 <ArrowUpRight size={13} />
@@ -565,9 +515,6 @@ export default function App() {
             </footer>
           </main>
         ))}
-      {tourStep !== null && (
-        <Walkthrough step={tourStep} onStep={goToTourStep} onClose={closeTour} />
-      )}
       <input
         ref={importRef}
         type="file"
@@ -608,11 +555,7 @@ export default function App() {
             <X size={20} />
           </button>
         </div>
-        <h2 id="about-title">
-          More practice.
-          <br />
-          Better questions.
-        </h2>
+        <h2 id="about-title">How Lab Bench works</h2>
         <p>
           An independent product work sample by Matthew Gaiser, exploring how instructors can author
           and check a focused troubleshooting exercise.

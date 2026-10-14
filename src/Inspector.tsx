@@ -7,7 +7,6 @@ import {
   Circle,
   FileCheck2,
   Info,
-  Lightbulb,
   Play,
   Plus,
   RefreshCw,
@@ -47,7 +46,15 @@ export default function Inspector({
   const checks = checkLab(lab);
   const ready = checks.every((c) => c.pass);
   const completed = checks.filter((c) => c.pass).length;
-  const showTab = setTab;
+  const showTab = (next: Tab) => {
+    setTab(next);
+    requestAnimationFrame(() => {
+      const button = document.getElementById(`tab-${next}`);
+      button?.focus({ preventScroll: true });
+      if (window.matchMedia('(max-width: 900px)').matches)
+        button?.scrollIntoView({ block: 'start' });
+    });
+  };
   const held = stepCircuit(
     stepCircuit(initialCircuit(), 'power', lab.fault),
     'start-down',
@@ -95,8 +102,11 @@ export default function Inspector({
           <>
             <div className="panel-intro">
               <span className="overline">THE BRIEF</span>
-              <h3>Give the work a purpose.</h3>
-              <p>A clear symptom is the beginning of a good troubleshooting exercise.</p>
+              <h3>Write the brief.</h3>
+              <p>
+                Write what apprentices should observe and investigate. Keep the fault location out
+                of the instructions.
+              </p>
             </div>
             <label className="field">
               <span>Exercise title</span>
@@ -180,13 +190,17 @@ export default function Inspector({
               <Plus size={15} />
               Add a hint
             </button>
+            <button className="button primary full panel-next" onClick={() => showTab('fault')}>
+              Next: choose a fault
+              <ChevronRight size={16} />
+            </button>
           </>
         )}
         {tab === 'fault' && (
           <>
             <div className="panel-intro">
               <span className="overline">A LITTLE FRICTION. A LOT OF LEARNING.</span>
-              <h3>Something isn’t right.</h3>
+              <h3>Choose the fault.</h3>
               <p>
                 Introduce one open conductor. The apprentice’s job is to find it and explain why.
               </p>
@@ -269,24 +283,9 @@ export default function Inspector({
                 <ArrowUpRight size={13} />
               </button>
             </div>
-            <div className="tip-card">
-              <Lightbulb size={19} />
-              <div>
-                <strong>Keep the answer out of sight.</strong>
-                <p>
-                  The fault marker is hidden in apprentice preview. Learners use the controls and
-                  isolated conductor inspection to investigate.
-                </p>
-              </div>
-            </div>
-            <button
-              id="preview-fault"
-              className="button secondary full preview-panel-button"
-              onClick={previewLab}
-            >
-              <Play size={15} />
-              Try the exercise
-              <ArrowUpRight size={15} />
+            <button className="button primary full panel-next" onClick={() => showTab('review')}>
+              Next: review lab
+              <ChevronRight size={16} />
             </button>
           </>
         )}
@@ -296,7 +295,7 @@ export default function Inspector({
               <div className="readiness-icon">
                 {ready ? <ShieldCheck size={28} /> : <FileCheck2 size={28} />}
               </div>
-              <span className="overline">PREFLIGHT CHECK</span>
+              <span className="overline">LAB CHECKS</span>
               <h3>{ready ? 'Ready for a practice run.' : 'A few things to finish.'}</h3>
               <p>
                 {ready
@@ -310,7 +309,7 @@ export default function Inspector({
                   key={c.id}
                   className={`check-item ${c.pass ? 'passed' : ''}`}
                   onClick={() => {
-                    setTab(c.id === 'fault' ? 'fault' : 'details');
+                    showTab(c.id === 'fault' ? 'fault' : 'details');
                     if (c.id === 'title') setTimeout(() => titleRef.current?.focus(), 0);
                   }}
                 >
