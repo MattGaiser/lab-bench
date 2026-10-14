@@ -158,7 +158,10 @@ test('delayed import cannot overwrite edits made while the file is being read', 
   await page.evaluate(() => {
     const read = File.prototype.text;
     File.prototype.text = async function () {
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      // Finish the read only after the competing edit, independent of runner speed.
+      await new Promise<void>((resolve) =>
+        window.addEventListener('finish-import-read', () => resolve(), { once: true }),
+      );
       return read.call(this);
     };
   });
@@ -170,6 +173,8 @@ test('delayed import cannot overwrite edits made while the file is being read', 
   });
   await page.locator('#details-basic > summary').click();
   await page.getByLabel('Exercise title').fill('Newer edit');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Newer edit');
+  await page.evaluate(() => window.dispatchEvent(new Event('finish-import-read')));
   await expect(page.getByRole('alert')).toContainText(
     'draft changed while the file was being read',
   );

@@ -4,6 +4,8 @@ An instructor should be able to turn a troubleshooting idea into a usable lab wi
 
 **Author a lab → check the symptom → export a reusable exercise.**
 
+**[Open the live demo](https://lab-bench-gaiser.web.app)**
+
 An independent product work sample by Matthew Gaiser, inspired by Dakota Prep's public instructor workflow. Not affiliated with Dakota Prep.
 
 ![The Lab Bench starting screen](docs/start.png)

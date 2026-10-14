@@ -4,6 +4,19 @@
 
 On the AI lesson form, a connection taking longer than 1.5 seconds shows a prominent panel explaining that Cloud Run may be warming up. Users can keep writing. A successful status response removes the panel; a failed or timed-out check offers **Retry connection** and the sample editor without losing the typed request. Status checks wait up to 30 seconds. Paid drafting requests are never retried automatically.
 
+## Current deployment
+
+The public demo is **[lab-bench-gaiser.web.app](https://lab-bench-gaiser.web.app)** in the existing `codeforcanada` project. Its dedicated Firebase site is `lab-bench-gaiser`; `firebase.json` names it explicitly so updates target that site.
+
+| Resource                 | Name                                                      |
+| ------------------------ | --------------------------------------------------------- |
+| Cloud Run service        | `lab-bench`, region `us-central1`                         |
+| Runtime identity         | `lab-bench-runtime@codeforcanada.iam.gserviceaccount.com` |
+| API-key secret           | `lab-bench-openai-key`, version `1`                       |
+| Private allowance bucket | `codeforcanada-lab-bench-usage`                           |
+
+Allowed origins are the site's `.web.app` and `.firebaseapp.com` addresses, plus `https://lab-bench-464580910450.us-central1.run.app` and `https://lab-bench-ziq2cxy5xq-uc.a.run.app`. The Cloud Run hostnames are included because Firebase forwards requests to that service. The service and revision both have a maximum of one instance and no minimum instances.
+
 ## Runtime configuration
 
 The included Dockerfile builds the app and copies only the assets, dependency-free server, and shared domain modules into the runtime image. Cloud Run sets `PORT` and `K_SERVICE`; the server then listens on `0.0.0.0`. Local execution still binds to `127.0.0.1`.
@@ -32,11 +45,13 @@ Use the deployment's project ID explicitly; do not rely on an unrelated active g
 ```sh
 npm ci
 npm run check
-gcloud run deploy lab-bench --source . --project PROJECT_ID --region us-central1
-firebase deploy --only hosting --project PROJECT_ID
+gcloud run deploy lab-bench --source . --project codeforcanada --region us-central1
+firebase deploy --only hosting --project codeforcanada
 ```
 
 For initial setup, enable Cloud Run, Cloud Build, Artifact Registry, Secret Manager, Cloud Storage, and Firebase Hosting in a billing-enabled project. Create the dedicated identity, private usage bucket, and API-key secret before enabling the public API. Configure the origins and quota bucket, map the secret to `OPENAI_API_KEY`, and allow unauthenticated invocation so Firebase Hosting can reach the API. Add Firebase to the project and create its Hosting site before deploying `firebase.json`.
+
+The Firebase CLI uses its own login (`firebase login`). The [Hosting REST API](https://firebase.google.com/docs/hosting/api-deploy) also supports deployment with a gcloud access token and the `x-goog-user-project: codeforcanada` header. For a different project, change the explicit Hosting site, resource names, and origins as well as the command's project argument.
 
 The source upload allowlist excludes local environment files, generated packages, credentials, and browser reports. Review `gcloud meta list-files-for-upload` before a source deployment. `npm run build` creates `dist`, which is the only directory uploaded by Firebase Hosting.
 
