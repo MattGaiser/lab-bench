@@ -79,6 +79,9 @@ for (const fault of WIRES) {
 
 for (const width of [320, 1440]) {
   test(`click-only layout and view controls at ${width}px`, async ({ page }) => {
+    // This sweep exercises every component and view limit through many real clicks.
+    // Allow slower CI browsers more total time; individual assertions still time out normally.
+    test.setTimeout(60_000);
     await page.setViewportSize({ width, height: 900 });
     await page.goto('/#editor');
     await page.locator('.canvas-movement > summary').click();
