@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "template": "start-stop",
+  "title": "The motor won't stay on",
+  "objective": "Find the open conductor and explain why the contactor drops out when START is released.",
+  "briefing": "A pump starts while the START button is held, but stops as soon as it is released. Explore the control circuit, isolate the supply, and inspect the conductors. Identify the fault and explain the role of the holding contact.",
+  "durationMinutes": 15,
+  "fault": "hold",
+  "hints": [
+    "What should keep K1 energized after START is released?",
+    "Trace the path through the K1 auxiliary contact."
+  ],
+  "positions": {
+    "stop": {
+      "x": 220,
+      "y": 260
+    },
+    "start": {
+      "x": 450,
+      "y": 170
+    },
+    "aux": {
+      "x": 450,
+      "y": 380
+    },
+    "coil": {
+      "x": 710,
+      "y": 260
+    }
+  }
+}
